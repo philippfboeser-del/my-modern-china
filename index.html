@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>My Modern China — 140 Years in One Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================= RESET & TOKENS ============================= */
+*,*::before,*::after{box-sizing:border-box;}
+html,body{height:100%;margin:0;overscroll-behavior:none;}
+body{
+  overflow:hidden;
+  font-family:'Source Sans 3','Source Sans Pro',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#0a0806;
+  color:#f0e6d2;
+  -webkit-font-smoothing:antialiased;
+}
+img,svg{display:block;max-width:100%;}
+button{font:inherit;}
+h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;margin:0;font-weight:700;}
+p{margin:0 0 .9em;}
+
+:root{
+  --font-head:'Playfair Display', Georgia, serif;
+  --font-body:'Source Sans 3',sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --cream:#f0e6d2;
+  --dim:rgba(240,230,210,.68);
+}
+
+/* ============================= ENTRANCE ============================= */
+.entrance{
+  position:fixed;inset:0;z-index:300;
+  display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 20%, rgba(255,255,255,.06), transparent 60%),
+    linear-gradient(160deg,#1c1712 0%, #0a0806 100%);
+  transition:opacity .9s ease .5s;
+}
+.entrance.opening{opacity:0;pointer-events:none;}
+.door{
+  position:absolute;top:0;bottom:0;width:51%;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.4), transparent 8%, transparent 92%, rgba(0,0,0,.4)),
+    linear-gradient(160deg,#241c14,#100c08);
+  border:1px solid rgba(255,255,255,.08);
+  transition:transform 1s cubic-bezier(.7,0,.2,1);
+  z-index:2;
+}
+.door-left{left:0;box-shadow:6px 0 30px rgba(0,0,0,.5);}
+.door-right{right:0;box-shadow:-6px 0 30px rgba(0,0,0,.5);}
+.entrance.opening .door-left{transform:translateX(-102%);}
+.entrance.opening .door-right{transform:translateX(102%);}
+.entrance-content{
+  position:relative;z-index:5;
+  max-width:640px;text-align:center;padding:2rem;
+}
+.entrance-kicker{
+  font-family:var(--font-mono);font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;
+  color:#caa14b;margin-bottom:1.4rem;
+}
+.entrance-content h1{
+  font-size:clamp(2.2rem,6vw,4rem);line-height:1.05;color:var(--cream);
+}
+.entrance-content h1 em{font-style:italic;color:#caa14b;}
+.entrance-content p{
+  margin-top:1.4rem;font-size:1.05rem;color:var(--dim);max-width:52ch;margin-left:auto;margin-right:auto;
+}
+.enter-btn{
+  margin-top:2.2rem;
+  background:transparent;
+  border:1px solid #caa14b;
+  color:#f5e4bb;
+  font-family:var(--font-mono);
+  font-size:.85rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  padding:.9em 2em;
+  border-radius:2px;
+  cursor:pointer;
+  transition:background .3s ease, color .3s ease, box-shadow .3s ease;
+}
+.enter-btn:hover,.enter-btn:focus-visible{
+  background:#caa14b;color:#1a1509;
+  box-shadow:0 0 30px -6px #caa14b;
+}
+.entrance-hint{
+  margin-top:1.6rem;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.04em;color:rgba(240,230,210,.4);
+}
+
+/* ============================= CORRIDOR VIEWPORT ============================= */
+.corridor-viewport{
+  position:fixed;inset:0;
+  perspective:1400px;
+  perspective-origin:50% 42%;
+  overflow:hidden;
+  background:#050403;
+}
+.room-scene{
+  position:absolute;inset:0;
+  transform-style:preserve-3d;
+  opacity:0;
+  pointer-events:none;
+  z-index:1;
+  will-change:transform,opacity;
+  transition:opacity .75s ease, transform .75s cubic-bezier(.22,.75,.28,1);
+  background:radial-gradient(ellipse 90% 70% at 50% 15%, rgba(255,255,255,.05), transparent 60%), var(--wall2);
+}
+.room-scene.active{opacity:1;pointer-events:auto;z-index:5;}
+.room-scene.enter-forward{opacity:0;transform:scale(.88) translateZ(-220px);z-index:6;}
+.room-scene.enter-backward{opacity:0;transform:scale(1.14) translateZ(160px);z-index:6;}
+.room-scene.leave-forward{opacity:0;transform:scale(1.16) translateZ(260px);}
+.room-scene.leave-backward{opacity:0;transform:scale(.84) translateZ(-260px);}
+
+.ceiling,.floor{
+  position:absolute;left:50%;width:240%;height:42%;
+  transform:translateX(-50%);
+  background:linear-gradient(to top, var(--wall2), transparent);
+}
+.ceiling{top:0;transform-origin:top center;transform:translateX(-50%) rotateX(-68deg);background:linear-gradient(to bottom, var(--wall2), transparent);}
+.floor{bottom:0;transform-origin:bottom center;transform:translateX(-50%) rotateX(68deg);
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 2px, transparent 2px 40px),
+    linear-gradient(to top, var(--floor1), var(--floor2));
+}
+.wall-left,.wall-right{
+  position:absolute;top:0;width:26%;height:100%;
+  background:linear-gradient(to right, var(--wall1), var(--wall2));
+}
+.wall-left{left:0;clip-path:polygon(0 0,100% 13%,100% 87%,0 100%);}
+.wall-right{right:0;background:linear-gradient(to left, var(--wall1), var(--wall2));clip-path:polygon(100% 0,0 13%,0 87%,100% 100%);}
+
+.spotlight{
+  position:absolute;pointer-events:none;
+  background:radial-gradient(ellipse at center, var(--accent) 0%, transparent 70%);
+  opacity:.2;filter:blur(30px);
+}
+.sp-a{top:4%;left:30%;width:22%;height:40%;}
+.sp-b{top:4%;right:30%;width:22%;height:40%;}
+.sp-c{bottom:0;left:38%;width:24%;height:30%;opacity:.14;}
+
+.wall-back{
+  position:absolute;left:16%;top:9%;width:68%;height:78%;
+  background:linear-gradient(165deg, var(--wall1), var(--wall2));
+  box-shadow:inset 0 0 120px rgba(0,0,0,.55), 0 30px 70px -20px rgba(0,0,0,.7);
+  border-radius:2px;
+  display:flex;flex-direction:column;align-items:center;
+  padding:2.4rem 2rem 2rem;
+  overflow:hidden;
+}
+.room-heading{text-align:center;margin-bottom:1.6rem;}
+.room-tag{
+  display:inline-block;font-family:var(--font-mono);font-size:.68rem;letter-spacing:.16em;
+  color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:.2em .7em;margin-bottom:.7rem;
+}
+.room-heading h2{font-size:clamp(1.7rem,3.6vw,2.6rem);color:var(--cream);}
+.room-years{font-family:var(--font-mono);font-size:.8rem;color:var(--dim);margin-top:.35rem;}
+
+.exhibits-row{
+  display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:center;
+  gap:1.6rem;width:100%;
+}
+
+/* --- exhibit base --- */
+.exhibit{
+  all:unset;
+  cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;
+  transition:transform .25s ease, filter .25s ease;
+}
+.exhibit:hover,.exhibit:focus-visible{transform:translateY(-4px);}
+.exhibit:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px;}
+.exhibit-caption{
+  margin-top:.6rem;font-family:var(--font-mono);font-size:.68rem;letter-spacing:.05em;
+  color:var(--dim);max-width:14ch;line-height:1.3;
+  transition:color .25s ease;
+}
+.exhibit:hover .exhibit-caption,.exhibit:focus-visible .exhibit-caption{color:var(--cream);}
+
+/* frame type */
+.exhibit.frame .frame-box{
+  width:104px;height:88px;
+  background:rgba(255,255,255,.05);
+  border:6px solid rgba(0,0,0,.4);
+  outline:1px solid var(--accent);
+  outline-offset:-4px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--accent);
+  box-shadow:0 10px 26px -12px rgba(0,0,0,.7);
+  transition:box-shadow .25s ease;
+}
+.exhibit.frame:hover .frame-box,.exhibit.frame:focus-visible .frame-box{box-shadow:0 0 26px -2px var(--accent);}
+.frame-box svg{width:58px;height:48px;}
+
+/* vitrine type */
+.exhibit.vitrine .vitrine-box{
+  position:relative;
+  width:88px;height:96px;
+}
+.vitrine-base{
+  position:absolute;bottom:0;left:8px;right:8px;height:14px;
+  background:linear-gradient(180deg,#3a3226,#211c15);
+  clip-path:polygon(0 0,100% 0,92% 100%,8% 100%);
+}
+.vitrine-glass{
+  position:absolute;bottom:12px;left:0;right:0;top:0;
+  background:linear-gradient(155deg, rgba(255,255,255,.16), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.3);
+  border-radius:3px;
+  display:flex;align-items:flex-end;justify-content:center;gap:5px;
+  padding:10px;
+  box-shadow:0 0 22px -6px var(--accent);
+  transition:box-shadow .25s ease;
+}
+.exhibit.vitrine:hover .vitrine-glass,.exhibit.vitrine:focus-visible .vitrine-glass{box-shadow:0 0 30px -2px var(--accent);}
+.vitrine-glass span{width:9px;background:var(--accent);border-radius:1px 1px 0 0;opacity:.85;}
+
+/* placard type */
+.exhibit.placard .placard-box{
+  width:112px;height:64px;
+  background:linear-gradient(160deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  border:1px solid var(--accent);
+  border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--accent);
+  box-shadow:0 8px 20px -12px rgba(0,0,0,.6);
+  transition:box-shadow .25s ease;
+}
+.exhibit.placard:hover .placard-box,.exhibit.placard:focus-visible .placard-box{box-shadow:0 0 22px -4px var(--accent);}
+.placard-box svg{width:26px;height:26px;}
+
+/* statue type (mobile-first: static grid item; promoted to foreground pedestal on desktop) */
+.statue-pedestal{
+  width:46px;height:12px;
+  background:linear-gradient(180deg,#3a3226,#18140f);
+  clip-path:polygon(6% 0,94% 0,100% 100%,0% 100%);
+  margin-top:.5rem;
+}
+.statue-figure{
+  width:34px;height:66px;
+  background:#0c0a08;
+  clip-path:polygon(50% 0%,66% 8%,64% 30%,78% 42%,74% 58%,64% 58%,68% 100%,32% 100%,36% 58%,26% 58%,22% 42%,36% 30%,34% 8%);
+  filter:drop-shadow(0 0 18px var(--accent));
+}
+.exhibit.statue{position:relative;}
+
+/* ============================= HUD / NAV ============================= */
+.hud{
+  position:fixed;top:20px;left:20px;z-index:60;
+  font-family:var(--font-mono);
+  background:rgba(10,8,6,.55);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:4px;
+  padding:.6em 1em;
+  backdrop-filter:blur(6px);
+  transition:border-color .4s ease;
+}
+.hud-room{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
+.hud-title{font-family:var(--font-head);font-size:1rem;color:var(--cream);margin-top:.15em;}
+
+.nav-arrow{
+  position:fixed;top:50%;transform:translateY(-50%);
+  width:52px;height:52px;z-index:60;
+  border-radius:50%;
+  background:rgba(10,8,6,.5);
+  border:1px solid rgba(255,255,255,.18);
+  color:var(--cream);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;
+  cursor:pointer;
+  transition:background .25s ease, opacity .25s ease, transform .25s ease;
+  backdrop-filter:blur(4px);
+  user-select:none;
+}
+.nav-arrow:hover{background:rgba(202,161,75,.35);}
+.nav-arrow.disabled{opacity:.25;pointer-events:none;}
+.nav-prev{left:18px;}
+.nav-next{right:18px;}
+
+.progress-dots{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  z-index:60;display:flex;gap:10px;align-items:center;
+  background:rgba(10,8,6,.5);
+  border:1px solid rgba(255,255,255,.12);
+  padding:.55em 1em;border-radius:20px;
+  backdrop-filter:blur(6px);
+}
+.progress-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(240,230,210,.3);
+  border:none;cursor:pointer;padding:0;
+  transition:background .3s ease, transform .3s ease;
+}
+.progress-dot.active{background:var(--accent,#caa14b);transform:scale(1.35);}
+
+.control-hint{
+  position:fixed;bottom:20px;right:20px;z-index:60;
+  font-family:var(--font-mono);font-size:.64rem;letter-spacing:.03em;
+  color:rgba(240,230,210,.35);
+  text-align:right;
+}
+
+.entry-sign{
+  position:fixed;top:20px;right:20px;left:auto;
+  max-width:300px;z-index:59;
+  background:var(--accent,#caa14b);
+  color:#1a1509;
+  font-family:var(--font-mono);
+  font-size:.76rem;
+  line-height:1.4;
+  padding:.8em 1em;
+  border-radius:3px;
+  box-shadow:0 14px 30px -14px rgba(0,0,0,.6);
+  opacity:0;transform:translateY(-8px);
+  transition:opacity .5s ease .4s, transform .5s ease .4s;
+  pointer-events:none;
+}
+.room-scene.active .entry-sign{opacity:1;transform:translateY(0);}
+
+/* ============================= ROOM PALETTES ============================= */
+.room-1{--wall1:#4a1c1c;--wall2:#210d0d;--floor1:#2a1010;--floor2:#0e0505;--accent:#caa14b;--accent2:#c98a7a;}
+.room-2{--wall1:#3a2e13;--wall2:#1a1508;--floor1:#22190b;--floor2:#0c0904;--accent:#c99a4b;--accent2:#3f9088;}
+.room-3{--wall1:#241414;--wall2:#120b0b;--floor1:#160d0d;--floor2:#080505;--accent:#c2523f;--accent2:#a39c8f;}
+.room-4{--wall1:#4a1414;--wall2:#220a0a;--floor1:#2a0d0d;--floor2:#0d0505;--accent:#e8c14a;--accent2:#d9584f;}
+.room-5{--wall1:#0d3038;--wall2:#071820;--floor1:#0a2228;--floor2:#040c0e;--accent:#d4af37;--accent2:#6fd6bd;}
+.room-final{--wall1:#2e2415;--wall2:#15100a;--floor1:#1c150c;--floor2:#0a0705;--accent:#d9b45c;--accent2:#8fbfae;}
+
+/* ============================= FINAL ROOM MURAL ============================= */
+.mural{
+  display:flex;align-items:stretch;gap:0;flex-wrap:nowrap;overflow-x:auto;
+  width:100%;padding:.5rem 0 .8rem;
+}
+.mural-room{
+  flex:1 1 108px;min-width:100px;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:.7em .5em;border:2px solid var(--room-color);border-radius:3px;
+  background:rgba(255,255,255,.04);cursor:pointer;
+  transition:transform .2s ease, background .2s ease;
+}
+.mural-room:hover,.mural-room:focus-visible{transform:translateY(-3px);background:rgba(255,255,255,.09);}
+.mural-room .yr{font-family:var(--font-mono);font-size:.62rem;color:var(--room-color);}
+.mural-room .nm{font-family:var(--font-head);font-weight:700;font-size:.82rem;color:var(--cream);margin-top:.15em;}
+.mural-arrow{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 .3em;max-width:76px;}
+.mural-arrow svg{width:26px;height:12px;color:rgba(255,255,255,.4);}
+.mural-arrow .why{font-size:.58rem;color:var(--dim);margin-top:.3em;line-height:1.25;}
+.curator-box{
+  margin-top:1.2rem;max-width:60ch;text-align:center;
+  font-family:var(--font-head);font-style:italic;font-size:1.02rem;color:var(--cream);
+}
+.restart-btn{
+  margin-top:1.4rem;
+  background:transparent;border:1px solid var(--accent);color:var(--cream);
+  font-family:var(--font-mono);font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;
+  padding:.7em 1.4em;border-radius:2px;cursor:pointer;
+  transition:background .25s ease,color .25s ease;
+}
+.restart-btn:hover{background:var(--accent);color:#1a1509;}
+
+/* ============================= MODAL ============================= */
+.modal-backdrop{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(6,5,4,.72);
+  backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  padding:2rem 1.2rem;
+  opacity:0;pointer-events:none;
+  transition:opacity .35s ease;
+}
+.modal-backdrop.open{opacity:1;pointer-events:auto;}
+.modal-card{
+  position:relative;
+  width:min(640px,100%);
+  max-height:86vh;overflow-y:auto;
+  background:linear-gradient(165deg,#231b12,#15100b);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:6px;
+  padding:2.2rem 2.2rem 2rem;
+  box-shadow:0 40px 90px -30px rgba(0,0,0,.8);
+  transform:translateY(16px) scale(.97);
+  transition:transform .35s cubic-bezier(.2,.8,.2,1);
+}
+.modal-backdrop.open .modal-card{transform:translateY(0) scale(1);}
+.modal-close{
+  position:absolute;top:14px;right:14px;
+  width:34px;height:34px;border-radius:50%;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);
+  color:var(--cream);font-size:1.2rem;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s ease;
+}
+.modal-close:hover{background:rgba(255,255,255,.18);}
+.modal-eyebrow{
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--modal-accent,#caa14b);margin-bottom:.7rem;
+}
+.modal-title{font-size:clamp(1.5rem,3.4vw,2rem);color:var(--cream);margin-bottom:1rem;}
+.modal-body p{color:var(--dim);font-size:1rem;}
+.modal-why{
+  font-size:.94rem;color:var(--cream);
+  border-left:3px solid var(--modal-accent,#caa14b);
+  padding:.7em 1em;margin:1rem 0;background:rgba(255,255,255,.04);
+}
+.modal-why strong{color:var(--modal-accent,#caa14b);}
+.modal-quote{
+  font-family:var(--font-head);font-style:italic;font-size:1.02rem;color:var(--cream);
+  border-top:1px dotted rgba(255,255,255,.2);margin:1.2rem 0 0;padding-top:1rem;
+}
+.modal-chart-wrap{
+  margin-top:1.2rem;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:4px;padding:1.2rem 1.1rem 1rem;
+  display:none;
+}
+.modal-chart-title{
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--modal-accent,#caa14b);margin-bottom:.7rem;
+}
+.chart-svg{width:100%;height:auto;overflow:visible;}
+.bar-rect{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0);transition:transform .9s cubic-bezier(.2,.8,.2,1);}
+.modal-chart-wrap.is-visible .bar-rect{transform:scaleY(1);}
+.bar-value{font-family:var(--font-mono);font-size:11px;fill:var(--cream);opacity:0;transition:opacity .5s ease .5s;}
+.modal-chart-wrap.is-visible .bar-value{opacity:1;}
+.bar-cat{font-family:var(--font-mono);font-size:10.5px;fill:rgba(240,230,210,.6);}
+.line-path{fill:none;stroke:var(--modal-accent,#caa14b);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1);}
+.area-path{fill:var(--modal-accent,#caa14b);opacity:0;transition:opacity 1s ease .5s;}
+.modal-chart-wrap.is-visible .area-path{opacity:.18;}
+.axis-line{stroke:rgba(255,255,255,.2);stroke-width:1;}
+.dot{fill:#15100b;stroke:var(--modal-accent,#caa14b);stroke-width:2;opacity:0;transition:opacity .4s ease;}
+.modal-chart-wrap.is-visible .dot{opacity:1;}
+
+/* ============================= RESPONSIVE ============================= */
+@media (max-width:760px){
+  .corridor-viewport{perspective:800px;perspective-origin:50% 38%;}
+  .ceiling{display:none;}
+  .floor{height:32%;}
+  .wall-left,.wall-right{width:10%;}
+  .wall-back{left:6%;width:88%;top:6%;height:84%;padding:1.6rem 1rem 1.4rem;}
+  .exhibits-row{gap:1rem;}
+  .frame-box{width:80px;height:68px;}
+  .frame-box svg{width:44px;height:36px;}
+  .vitrine-box{width:70px;height:78px;}
+  .placard-box{width:88px;height:52px;}
+  .nav-arrow{width:42px;height:42px;font-size:1.3rem;}
+  .nav-prev{left:8px;}
+  .nav-next{right:8px;}
+  .hud{padding:.5em .8em;}
+  .hud-title{font-size:.86rem;}
+  .entry-sign{max-width:56vw;font-size:.66rem;top:14px;right:14px;}
+  .control-hint{display:none;}
+  .modal-card{padding:1.6rem 1.4rem 1.4rem;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.001ms !important;animation-duration:.001ms !important;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================= ENTRANCE ============================= -->
+<div class="entrance" id="entrance">
+  <div class="door door-left"></div>
+  <div class="door door-right"></div>
+  <div class="entrance-content">
+    <div class="entrance-kicker">A School Exhibition · Economic History</div>
+    <h1>My Modern China<br><em>140 Years in One Story</em></h1>
+    <p>Walk through five rooms, each one a different economic era of modern China — 1839 to today. Every exhibit you open explains not just what happened, but why it made the next room possible.</p>
+    <button class="enter-btn" id="enterBtn">Enter the Museum</button>
+    <div class="entrance-hint">Move with ← → arrow keys, scroll, swipe, or the on-screen arrows. Click any exhibit to look closer.</div>
+  </div>
+</div>
+
+<!-- ============================= CORRIDOR ============================= -->
+<div class="corridor-viewport" id="corridorViewport"></div>
+
+<div class="hud" id="hud">
+  <div class="hud-room" id="hudRoom">Room I / 5</div>
+  <div class="hud-title" id="hudTitle">Forced Opening</div>
+</div>
+
+<button class="nav-arrow nav-prev" id="navPrev" aria-label="Previous room">‹</button>
+<button class="nav-arrow nav-next" id="navNext" aria-label="Next room">›</button>
+
+<div class="progress-dots" id="progressDots"></div>
+<div class="control-hint">↑↓ / ←→ &nbsp;·&nbsp; scroll &nbsp;·&nbsp; swipe</div>
+
+<!-- ============================= MODAL ============================= -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+    <div class="modal-eyebrow" id="modalEyebrow"></div>
+    <h3 class="modal-title" id="modalTitle"></h3>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-why" id="modalWhy"></div>
+    <div class="modal-chart-wrap" id="modalChartWrap">
+      <div class="modal-chart-title" id="modalChartTitle"></div>
+      <div id="modalChartHost"></div>
+    </div>
+    <blockquote class="modal-quote" id="modalQuote" style="display:none;"></blockquote>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var SVG_NS = "http://www.w3.org/2000/svg";
+
+/* ============================= ICONS ============================= */
+var ICONS = {
+  ship:'<svg viewBox="0 0 64 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 34h48l-6 10H14z"/><path d="M32 34V6"/><path d="M32 10l16 8H32z" fill="currentColor" stroke="none" opacity=".85"/><path d="M32 16l-14 6" /></svg>',
+  factory:'<svg viewBox="0 0 64 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 42h52"/><path d="M10 42V24l10 6V24l10 6V16h18v26"/><path d="M44 16V8M50 16V8" /><path d="M40 6c0 3 3 3 3 6M46 6c0 3 3 3 3 6" stroke-width="1.6"/></svg>',
+  inflate:'<svg viewBox="0 0 64 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 40h52"/><path d="M14 40V30M24 40V22M34 40V12M44 40V4" stroke-dasharray="2 3"/><path d="M6 40L44 4" stroke-width="2.4"/><path d="M44 4h-10M44 4v10" /></svg>',
+  wheat:'<svg viewBox="0 0 64 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M32 44V10"/><path d="M32 12l-8-6M32 12l8-6M32 20l-8-6M32 20l8-6M32 28l-8-6M32 28l8-6"/><path d="M14 44h36" stroke-width="2.4"/></svg>',
+  skyline:'<svg viewBox="0 0 64 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 44h52"/><path d="M12 44V26h8v18M26 44V14h10v30M42 44V22h8v22"/><path d="M46 22V8M46 8l8 4"/></svg>',
+  compass:'<svg viewBox="0 0 64 48" fill="none" stroke="currentColor" stroke-width="2"><circle cx="32" cy="24" r="15"/><path d="M32 15l4 12-4 6-4-6z" fill="currentColor" stroke="none" opacity=".85"/></svg>',
+  scroll:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M6 8h12M6 12h8"/></svg>'
+};
+
+/* ============================= CONTENT DATA ============================= */
+var ROOMS = [
+  {
+    id:"room-1", tag:"Room I", title:"Forced Opening", years:"1839 – 1900",
+    entrySign:null,
+    exhibits:[
+      {type:"frame", icon:"ship", caption:"Gunboats on the Pearl River",
+        title:"Gunboats on the Pearl River",
+        body:"<p>For centuries China ran the trade the rest of the world wanted — tea, silk, porcelain — paid for in silver, because China wanted little else in return. Britain fixed that imbalance with opium.</p><p>When Qing officials tried to stop the opium trade flooding into Canton, Britain answered with warships rather than diplomats. The First Opium War (1839–1842) ended with the Treaty of Nanjing: five ports forced open, Hong Kong ceded, and a tariff China no longer controlled.</p>",
+        why:"This was the first time in the modern era that China's trade terms were dictated from outside its own borders — a pattern that would repeat for the next sixty years.",
+        quote:"A treasury that cannot set its own tariff is a government waiting to run out of money."},
+      {type:"vitrine", caption:"The Treaty Port System",
+        title:"The Treaty Port System",
+        body:"<p>Over the following six decades, \"unequal treaties\" multiplied — more ports, more foreign concessions, extraterritorial law for foreign citizens, and eventually a Chinese Maritime Customs Service run by a foreign inspector-general.</p><p>By 1900, more than eighty treaty ports dotted the Chinese coast and river systems, each a small enclave of foreign law and foreign commerce.</p>",
+        why:"Once foreign powers controlled where and how trade happened, they effectively controlled a growing share of China's state revenue too.",
+        chart:{type:"bar", values:[5,15,33,60,80], cats:["1842","1860","1876","1895","1900"], title:"Fig. — Treaty Ports Forced Open (cumulative)"}},
+      {type:"placard", caption:"Who Controlled the Tariff?",
+        title:"Who Controlled the Tariff?",
+        body:"<p>The fixed, low tariff imposed after 1842 meant China could not protect its own workshops from cheap foreign imports, nor raise import taxes when it desperately needed revenue.</p><p>Import and export duties, once a domestic decision, were now negotiated — and largely dictated — from abroad.</p>",
+        why:"A state that cannot tax its own trade cannot fund its own army, its own schools, or its own reforms — exactly the corner the Qing government found itself painted into."},
+      {type:"statue", caption:"The Weaver's Empty Loom",
+        title:"The Weaver's Empty Loom",
+        body:"<p>Peasant households that had spun cloth for generations found it cheaper to buy foreign cotton than to make their own — an entire domestic industry died quietly in millions of small workshops.</p><p>Silver, the backbone of everyday transactions, grew scarce and expensive, squeezing farmers who owed taxes in silver but earned in copper coin.</p>",
+        why:"The economic shock of forced opening was not abstract — it reached into individual households long before it reached the history books.",
+        quote:"The loom stood still long before anyone in Beijing noticed."}
+    ]
+  },
+  {
+    id:"room-2", tag:"Room II", title:"Industrialisation", years:"1900 – 1937",
+    entrySign:"Following Room I: a hollowed-out treasury, and reformers convinced that survival meant industry.",
+    exhibits:[
+      {type:"frame", icon:"factory", caption:"Smoke Over Shanghai",
+        title:"Smoke Over Shanghai",
+        body:"<p>The Self-Strengthening reformers of the late 1800s had already planted the idea: China would not survive by rejecting industry, only by mastering it.</p><p>Treaty-port cities — Shanghai, Tianjin, Wuhan — became China's first real industrial zones, largely under foreign capital and foreign law rather than the Chinese state itself.</p>",
+        why:"Industrial growth arrived in China, but on terms and in places foreign investors chose — not a national strategy."},
+      {type:"vitrine", caption:"Rails to the Coast",
+        title:"Rails to the Coast",
+        body:"<p>Railways expanded steadily after 1900, but unevenly: foreign-financed lines connected export coasts to resource hinterlands rather than knitting together one national market.</p><p>By 1937, over 21,000 km of track existed — most of it funnelling goods toward the coast, not between inland provinces.</p>",
+        why:"Infrastructure built to serve exports, not the whole country, is exactly why China's regional inequality has such deep roots.",
+        chart:{type:"bar", values:[400,9000,13000,21000], cats:["1900","1911","1927","1937"], title:"Fig. — Railway Track Built (cumulative km)"}},
+      {type:"placard", caption:"A Nation Without One Government",
+        title:"A Nation Without One Government",
+        body:"<p>After the Qing fell in 1911, and especially after 1916, the country fractured into warlord fiefdoms, each taxing trade and printing its own currency inside its own territory.</p><p>Investment became a gamble on whichever general happened to control a province that year.</p>",
+        why:"Political fragmentation is itself an economic cost — capital avoids places where the rules can change at the point of a rifle."},
+      {type:"statue", caption:"Two Chinas",
+        title:"Two Chinas",
+        body:"<p>A new urban class — factory workers, clerks, treaty-port merchants — lived a version of modern life: wages, mills, department stores, newspapers.</p><p>Inland China, taxed by whichever army passed through, saw almost none of it. The coast/interior gap still visible in China today was built in these three decades.</p>",
+        why:"Uneven growth doesn't just distribute wealth unevenly — it distributes vulnerability unevenly too, as the next room makes brutally clear.",
+        quote:"Two trains left the same station — one reached Shanghai, the other reached nowhere."}
+    ]
+  },
+  {
+    id:"room-3", tag:"Room III", title:"War Economy", years:"1937 – 1949",
+    entrySign:"Following Room II: industrial growth too coastal, and too fragile, to survive an invasion.",
+    exhibits:[
+      {type:"frame", icon:"inflate", caption:"The Coast Falls",
+        title:"The Coast Falls",
+        body:"<p>Japan's invasion in 1937 did not just kill millions and displace tens of millions more — it captured almost every industrial and coastal region China had spent four decades building.</p><p>The Nationalist government retreated inland, cut off from its own tax base, its own factories, its own ports.</p>",
+        why:"Everything built in Room II — the railways, the mills, the treaty-port economy — was concentrated exactly where the invasion struck first."},
+      {type:"vitrine", caption:"Printing Through the War",
+        title:"Printing Through the War",
+        body:"<p>To fund the war without a functioning tax system, the Kuomintang did what cut-off wartime governments have always done: it printed money.</p><p>Prices that had been roughly stable for decades rose by hundreds, then thousands, then millions of percent by 1948.</p>",
+        why:"Hyperinflation doesn't just erase savings — it erases trust in the government that issued the currency.",
+        chart:{type:"line", log:true, values:[1,3,30,600,20000,3000000], cats:["1937","1940","1943","1945","1947","1948"], title:"Fig. — Price Index, 1937–1948 (log scale)"}},
+      {type:"placard", caption:"The Gold Yuan Collapse",
+        title:"The Gold Yuan Collapse",
+        body:"<p>When civil war against the Communists resumed in 1946, a currency reform — the \"gold yuan\" — collapsed within months, wiping out the savings of exactly the urban middle class the Nationalists most needed on their side.</p>",
+        why:"Losing the loyalty of your own middle class, through your own currency, is a very specific way to lose a civil war."},
+      {type:"statue", caption:"A Wheelbarrow of Banknotes",
+        title:"A Wheelbarrow of Banknotes",
+        body:"<p>Families watched a lifetime of savings turn into worthless paper within weeks. Salaried teachers and officials were paid in bricks of near-worthless bills and paid others, in turn, in something more real: rice, cloth, silver.</p><p>Meanwhile, in the rural base areas it controlled, the Communist Party offered land redistribution and a stable local economy — a rival economic promise that money could no longer compete with.</p>",
+        why:"By 1949 the Party that won had, in large part, out-competed the old order economically before it beat it militarily.",
+        quote:"It took a wheelbarrow of banknotes to buy a bag of rice — and the bag of rice bought loyalty faster than any note could."}
+    ]
+  },
+  {
+    id:"room-4", tag:"Room IV", title:"Planned Economy", years:"1949 – 1978",
+    entrySign:"Following Room III: a currency destroyed, an old order discredited, a party that had promised land and stability.",
+    exhibits:[
+      {type:"frame", icon:"wheat", caption:"Land to the Tiller",
+        title:"Land to the Tiller",
+        body:"<p>The new People's Republic inherited hyperinflation, ruined infrastructure, and a peasantry promised land. It moved fast: land reform redistributed farmland to tens of millions of households by the early 1950s.</p><p>Banks, foreign firms, and eventually all major industry were nationalised soon after.</p>",
+        why:"The new government's first economic move directly redeemed the promise that had won it the countryside."},
+      {type:"vitrine", caption:"The Great Leap's Furnace",
+        title:"The Great Leap's Furnace",
+        body:"<p>The First Five-Year Plan (1953–1957) produced real, rapid industrial growth. In 1958 Mao pushed further and faster: the Great Leap Forward aimed to overtake Britain's steel output within fifteen years.</p><p>Villages melted down farm tools in backyard furnaces; local officials, under pressure, reported harvests that did not exist — while grain was still requisitioned to meet targets that existed mostly on paper.</p>",
+        why:"The result was the deadliest famine of the twentieth century — a reminder of what happens when political targets override economic reality.",
+        chart:{type:"line", values:[195,170,143,147,160,194,213,286], cats:["1957","1959","1960","1961","1962","1965","1970","1976"], title:"Fig. — Grain Output, 1957–1976 (million tonnes)"}},
+      {type:"placard", caption:"Every Household, One Work Unit",
+        title:"Every Household, One Work Unit",
+        body:"<p>For the first time, every household was tied to a work unit or commune that decided your job, your food rations, your housing, even your travel permit.</p><p>The Cultural Revolution (1966–1976) then paralysed the economy a second time: factories run by political committees instead of engineers, schools shut, a generation of managers sent to the countryside.</p>",
+        why:"Command economies can mobilise resources fast — but they can also mobilise mistakes just as fast, at national scale."},
+      {type:"statue", caption:"The Melted Cooking Pot",
+        title:"The Melted Cooking Pot",
+        body:"<p>Private trade briefly disappeared, along with household cooking pots, melted for furnace quotas that produced unusable pig iron. The famine reached into millions of families as literal hunger, not an abstract statistic.</p>",
+        why:"When Mao died in 1976, the leadership that followed drew a blunt lesson: growth needs incentives, markets, and the outside world again.",
+        quote:"They melted the pot before they had anything to cook in its place."}
+    ]
+  },
+  {
+    id:"room-5", tag:"Room V", title:"Reform & Opening-Up", years:"1978 – Present",
+    entrySign:"Following Room IV: real industrial foundations, built alongside a famine and a decade of paralysis that discredited ideology-first planning.",
+    exhibits:[
+      {type:"frame", icon:"skyline", caption:"Deng's Reversal",
+        title:"Deng's Reversal",
+        body:"<p>In December 1978, Deng Xiaoping's leadership reversed three decades of orthodoxy: markets, private incentive, and foreign investment were declared tools, not enemies — usable to build prosperity rather than to betray it.</p>",
+        why:"The most consequential economic sentence of the late twentieth century may simply have been: it doesn't matter if a cat is black or white, as long as it catches mice."},
+      {type:"vitrine", caption:"Shenzhen: Village to Metropolis",
+        title:"Shenzhen: Village to Metropolis",
+        body:"<p>Special Economic Zones opened to foreign capital, starting with a fishing town called Shenzhen — a manufacturing metropolis of millions within little more than a decade.</p><p>By the 2000s China had become the world's manufacturing base, and increasingly a competitor in technology and finance.</p>",
+        why:"A reversal of the position China held when this exhibition began in 1839 — this time setting many of its own terms of trade.",
+        chart:{type:"line", values:[1,3,8,20,60,150,260], cats:["1978","1985","1995","2005","2012","2020","2024"], title:"Fig. — GDP Growth, 1978–Today (index)"}},
+      {type:"placard", caption:"The Household Responsibility System",
+        title:"The Household Responsibility System",
+        body:"<p>Farming families were allowed to sell surplus above a state quota; grain output and rural incomes jumped almost immediately — echoing, in reverse, the collectivisation trauma of the Great Leap.</p>",
+        why:"Sometimes the fastest way to fix a planned economy's mistake is to partially undo the plan."},
+      {type:"statue", caption:"The Migrant's Suitcase",
+        title:"The Migrant's Suitcase",
+        body:"<p>Hundreds of millions moved from villages to factory cities in the fastest urbanisation in human history — the same countryside that starved in 1960 became the source of the world's cheap manufactured goods.</p><p>Inequality returned, differently this time, between coastal boomtowns and the rural interior — echoing the imbalance of the 1920s treaty-port era.</p>",
+        why:"From gunboats in 1839 to special economic zones in 1978, the 140 years in between were, underneath everything else, an argument about who controls trade, land, and capital in China — still being written today.",
+        quote:"The same coastline that once let foreigners in now lets China out."}
+    ]
+  }
+];
+
+var ROUTE_COLORS = ["#caa14b","#c99a4b","#c2523f","#e8c14a","#d4af37"];
+var ROUTE_WHY = [
+  "drains treasury, ends tariff control",
+  "growth too coastal, too fragile",
+  "hyperinflation destroys legitimacy",
+  "famine & stagnation discredit ideology-first growth",
+  "→ China re-enters the world economy"
+];
+
+/* ============================= DOM BUILDERS ============================= */
+function el(tag, cls, html){
+  var e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(html!==undefined) e.innerHTML = html;
+  return e;
+}
+
+function buildExhibit(exhibit, roomIndex, exhibitIndex){
+  var btn = document.createElement("button");
+  btn.className = "exhibit " + exhibit.type;
+  btn.type = "button";
+  btn.setAttribute("data-room", roomIndex);
+  btn.setAttribute("data-exhibit", exhibitIndex);
+
+  if(exhibit.type === "frame"){
+    var box = el("div","frame-box", ICONS[exhibit.icon] || "");
+    btn.appendChild(box);
+  } else if(exhibit.type === "vitrine"){
+    var vbox = el("div","vitrine-box");
+    var glass = el("div","vitrine-glass","<span style='height:40%'></span><span style='height:70%'></span><span style='height:55%'></span>");
+    var base = el("div","vitrine-base");
+    vbox.appendChild(glass); vbox.appendChild(base);
+    btn.appendChild(vbox);
+  } else if(exhibit.type === "placard"){
+    var pbox = el("div","placard-box", ICONS.scroll);
+    btn.appendChild(pbox);
+  } else if(exhibit.type === "statue"){
+    var fig = el("div","statue-figure");
+    var ped = el("div","statue-pedestal");
+    btn.appendChild(fig); btn.appendChild(ped);
+  }
+
+  var cap = el("div","exhibit-caption", exhibit.caption);
+  btn.appendChild(cap);
+  btn.addEventListener("click", function(){ openExhibit(roomIndex, exhibitIndex); });
+  return btn;
+}
+
+function buildRoomScene(room, index){
+  var scene = el("div","room-scene room-" + (index+1));
+  scene.id = room.id;
+  scene.setAttribute("data-index", index);
+
+  scene.appendChild(el("div","ceiling"));
+  scene.appendChild(el("div","floor"));
+  scene.appendChild(el("div","wall-left"));
+  scene.appendChild(el("div","wall-right"));
+  scene.appendChild(el("div","spotlight sp-a"));
+  scene.appendChild(el("div","spotlight sp-b"));
+  scene.appendChild(el("div","spotlight sp-c"));
+
+  if(room.entrySign){
+    scene.appendChild(el("div","entry-sign","→ " + room.tag + " — " + room.title + "<br>" + room.entrySign));
+  }
+
+  var wallBack = el("div","wall-back");
+  var heading = el("div","room-heading");
+  heading.appendChild(el("div","room-tag", room.tag));
+  heading.appendChild(el("h2",null, room.title));
+  heading.appendChild(el("div","room-years", room.years));
+  wallBack.appendChild(heading);
+
+  var row = el("div","exhibits-row");
+  room.exhibits.forEach(function(ex, i){ row.appendChild(buildExhibit(ex, index, i)); });
+  wallBack.appendChild(row);
+
+  scene.appendChild(wallBack);
+  return scene;
+}
+
+function buildFinalRoom(index){
+  var scene = el("div","room-scene room-final");
+  scene.id = "room-final";
+  scene.setAttribute("data-index", index);
+  scene.appendChild(el("div","ceiling"));
+  scene.appendChild(el("div","floor"));
+  scene.appendChild(el("div","wall-left"));
+  scene.appendChild(el("div","wall-right"));
+  scene.appendChild(el("div","spotlight sp-a"));
+  scene.appendChild(el("div","spotlight sp-b"));
+  scene.appendChild(el("div","entry-sign","→ The Long Corridor<br>You've walked from an empire forced open to an economy reopened by choice. Look back at the whole route."));
+
+  var wallBack = el("div","wall-back");
+  var heading = el("div","room-heading");
+  heading.appendChild(el("div","room-tag","Final Room"));
+  heading.appendChild(el("h2",null,"The Long Corridor"));
+  heading.appendChild(el("div","room-years","Five Rooms, One Argument"));
+  wallBack.appendChild(heading);
+
+  var mural = el("div","mural");
+  ROOMS.forEach(function(room, i){
+    var node = document.createElement("button");
+    node.type = "button";
+    node.className = "mural-room";
+    node.style.setProperty("--room-color", ROUTE_COLORS[i]);
+    node.innerHTML = '<div class="yr">'+room.tag+' · '+room.years.split(" ")[0]+'</div><div class="nm">'+room.title+'</div>';
+    node.addEventListener("click", function(){ goTo(i); });
+    mural.appendChild(node);
+    if(i < ROOMS.length-1){
+      var arrow = el("div","mural-arrow",
+        '<svg viewBox="0 0 26 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M0 6h18M13 1l6 5-6 5"/></svg>' +
+        '<div class="why">'+ROUTE_WHY[i]+'</div>');
+      mural.appendChild(arrow);
+    }
+  });
+  wallBack.appendChild(mural);
+
+  wallBack.appendChild(el("div","curator-box","Curator's note — read as economics rather than as a list of dates, modern Chinese history stops being 140 years of separate rooms, and becomes one long argument about control over trade, land, and capital. Still unresolved."));
+
+  var restart = document.createElement("button");
+  restart.type = "button";
+  restart.className = "restart-btn";
+  restart.textContent = "↺ Walk the Tour Again";
+  restart.addEventListener("click", function(){ goTo(0); });
+  wallBack.appendChild(restart);
+
+  scene.appendChild(wallBack);
+  return scene;
+}
+
+/* ============================= BUILD CORRIDOR ============================= */
+var corridor = document.getElementById("corridorViewport");
+var roomEls = [];
+ROOMS.forEach(function(room, i){
+  var scene = buildRoomScene(room, i);
+  corridor.appendChild(scene);
+  roomEls.push(scene);
+});
+var finalScene = buildFinalRoom(ROOMS.length);
+corridor.appendChild(finalScene);
+roomEls.push(finalScene);
+
+var ALL_META = ROOMS.concat([{tag:"Final Room", title:"The Long Corridor", years:""}]);
+
+/* progress dots */
+var dotsHost = document.getElementById("progressDots");
+var dotEls = ALL_META.map(function(m, i){
+  var d = document.createElement("button");
+  d.type = "button";
+  d.className = "progress-dot";
+  d.title = m.tag + (m.title ? (" — " + m.title) : "");
+  d.addEventListener("click", function(){ goTo(i); });
+  dotsHost.appendChild(d);
+  return d;
+});
+
+/* ============================= NAVIGATION ENGINE ============================= */
+var current = 0;
+var animating = false;
+var navPrev = document.getElementById("navPrev");
+var navNext = document.getElementById("navNext");
+var hudRoom = document.getElementById("hudRoom");
+var hudTitle = document.getElementById("hudTitle");
+
+function updateHUD(){
+  var m = ALL_META[current];
+  hudRoom.textContent = (current < ROOMS.length) ? ("Room " + (current+1) + " / " + ROOMS.length) : "Final Room";
+  hudTitle.textContent = m.title;
+  dotEls.forEach(function(d,i){ d.classList.toggle("active", i===current); });
+  navPrev.classList.toggle("disabled", current===0);
+  navNext.classList.toggle("disabled", current===roomEls.length-1);
+  roomEls.forEach(function(r,i){
+    if(i===current) r.removeAttribute("inert");
+    else r.setAttribute("inert","");
+  });
+}
+roomEls[0].classList.add("active");
+
+function goTo(index){
+  index = Math.max(0, Math.min(roomEls.length-1, index));
+  if(index === current || animating) return;
+  var direction = index > current ? "forward" : "backward";
+  var leaving = roomEls[current];
+  var entering = roomEls[index];
+  animating = true;
+
+  leaving.classList.remove("active");
+  entering.classList.add(direction==="forward" ? "enter-forward" : "enter-backward");
+  entering.classList.add("active");
+
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      entering.classList.remove("enter-forward","enter-backward");
+      leaving.classList.add(direction==="forward" ? "leave-forward" : "leave-backward");
+    });
+  });
+
+  current = index;
+  updateHUD();
+
+  setTimeout(function(){
+    leaving.classList.remove("leave-forward","leave-backward");
+    animating = false;
+  }, 780);
+}
+updateHUD();
+
+navPrev.addEventListener("click", function(){ goTo(current-1); });
+navNext.addEventListener("click", function(){ goTo(current+1); });
+
+/* keyboard */
+window.addEventListener("keydown", function(e){
+  if(modalBackdrop.classList.contains("open")){
+    if(e.key === "Escape") closeModal();
+    return;
+  }
+  if(["ArrowRight","ArrowDown","PageDown"].indexOf(e.key) !== -1){ e.preventDefault(); goTo(current+1); }
+  else if(["ArrowLeft","ArrowUp","PageUp"].indexOf(e.key) !== -1){ e.preventDefault(); goTo(current-1); }
+});
+
+/* wheel */
+var lastWheel = 0;
+corridor.addEventListener("wheel", function(e){
+  e.preventDefault();
+  if(modalBackdrop.classList.contains("open")) return;
+  var now = Date.now();
+  if(now - lastWheel < 750) return;
+  if(Math.abs(e.deltaY) < 10 && Math.abs(e.deltaX) < 10) return;
+  lastWheel = now;
+  var delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+  goTo(current + (delta > 0 ? 1 : -1));
+}, {passive:false});
+
+/* touch swipe */
+var touchStartX = 0, touchStartY = 0;
+corridor.addEventListener("touchstart", function(e){
+  var t = e.changedTouches[0];
+  touchStartX = t.clientX; touchStartY = t.clientY;
+}, {passive:true});
+corridor.addEventListener("touchend", function(e){
+  if(modalBackdrop.classList.contains("open")) return;
+  var t = e.changedTouches[0];
+  var dx = t.clientX - touchStartX;
+  var dy = t.clientY - touchStartY;
+  var absX = Math.abs(dx), absY = Math.abs(dy);
+  if(Math.max(absX,absY) < 45) return;
+  if(absX > absY) goTo(current + (dx < 0 ? 1 : -1));
+  else goTo(current + (dy < 0 ? 1 : -1));
+}, {passive:true});
+
+/* mouse parallax (fine pointers only) */
+if(window.matchMedia && window.matchMedia("(pointer:fine)").matches){
+  var rafPending = false, lastNX = 0, lastNY = 0;
+  corridor.addEventListener("mousemove", function(e){
+    lastNX = (e.clientX / window.innerWidth - .5) * 2;
+    lastNY = (e.clientY / window.innerHeight - .5) * 2;
+    if(!rafPending){
+      rafPending = true;
+      requestAnimationFrame(function(){
+        corridor.style.setProperty("--px", lastNX.toFixed(3));
+        corridor.style.setProperty("--py", lastNY.toFixed(3));
+        rafPending = false;
+      });
+    }
+  });
+}
+
+/* ============================= ENTRANCE ============================= */
+var entrance = document.getElementById("entrance");
+document.getElementById("enterBtn").addEventListener("click", function(){
+  entrance.classList.add("opening");
+  setTimeout(function(){ entrance.style.display = "none"; }, 1500);
+});
+
+/* ============================= CHART RENDERING ============================= */
+function svgEl(tag, attrs){
+  var e = document.createElementNS(SVG_NS, tag);
+  for(var k in attrs){ e.setAttribute(k, attrs[k]); }
+  return e;
+}
+function renderBarChart(svg, values, cats){
+  var W=340,H=190,padL=8,padR=8,padB=24,padT=10;
+  var chartW=W-padL-padR, chartH=H-padT-padB;
+  var max=Math.max.apply(null,values), n=values.length, gap=14;
+  var barW=(chartW-gap*(n-1))/n;
+  svg.appendChild(svgEl("line",{class:"axis-line",x1:padL,y1:H-padB,x2:W-padR,y2:H-padB}));
+  values.forEach(function(v,i){
+    var h=(v/max)*chartH, x=padL+i*(barW+gap), y=H-padB-h;
+    var rect=svgEl("rect",{class:"bar-rect",x:x,y:y,width:barW,height:h,fill:i===n-1?"var(--modal-accent)":"var(--modal-accent2)",rx:2});
+    rect.style.transitionDelay=(i*90)+"ms";
+    svg.appendChild(rect);
+    var label=svgEl("text",{class:"bar-value",x:x+barW/2,y:y-6,"text-anchor":"middle"});
+    label.textContent = v>=1000?Math.round(v/1000)+"k":v;
+    svg.appendChild(label);
+    var cat=svgEl("text",{class:"bar-cat",x:x+barW/2,y:H-padB+15,"text-anchor":"middle"});
+    cat.textContent=cats[i];
+    svg.appendChild(cat);
+  });
+}
+function renderLineChart(svg, values, cats, logScale){
+  var W=340,H=190,padL=10,padR=10,padB=24,padT=14;
+  var chartW=W-padL-padR, chartH=H-padT-padB, n=values.length;
+  var scaled=values.map(function(v){ return logScale?Math.log10(Math.max(v,1)+1):v; });
+  var max=Math.max.apply(null,scaled), min=Math.min.apply(null,scaled), range=(max-min)||1;
+  var pts=scaled.map(function(v,i){
+    var x=padL+(i/(n-1))*chartW, y=padT+chartH-((v-min)/range)*chartH;
+    return [x,y];
+  });
+  svg.appendChild(svgEl("line",{class:"axis-line",x1:padL,y1:H-padB,x2:W-padR,y2:H-padB}));
+  var lineD=pts.map(function(p,i){return (i===0?"M":"L")+p[0].toFixed(1)+","+p[1].toFixed(1);}).join(" ");
+  var areaD=lineD+" L"+pts[pts.length-1][0].toFixed(1)+","+(H-padB)+" L"+pts[0][0].toFixed(1)+","+(H-padB)+" Z";
+  svg.appendChild(svgEl("path",{class:"area-path",d:areaD}));
+  var path=svgEl("path",{class:"line-path",d:lineD});
+  svg.appendChild(path);
+  pts.forEach(function(p,i){
+    svg.appendChild(svgEl("circle",{class:"dot",cx:p[0],cy:p[1],r:3.5}));
+    var cat=svgEl("text",{class:"bar-cat",x:p[0],y:H-padB+15,"text-anchor":"middle"});
+    cat.textContent=cats[i];
+    svg.appendChild(cat);
+  });
+  requestAnimationFrame(function(){
+    var len=path.getTotalLength();
+    path.style.strokeDasharray=len;
+    path.style.strokeDashoffset=len;
+    requestAnimationFrame(function(){
+      var wrap = svg.closest(".modal-chart-wrap");
+      if(wrap && wrap.classList.contains("is-visible")) path.style.strokeDashoffset=0;
+    });
+  });
+}
+function buildChartSvg(chart){
+  var svg = svgEl("svg",{viewBox:"0 0 340 190", class:"chart-svg"});
+  if(chart.type==="bar") renderBarChart(svg, chart.values, chart.cats);
+  else renderLineChart(svg, chart.values, chart.cats, chart.log);
+  return svg;
+}
+
+/* ============================= MODAL ============================= */
+var modalBackdrop = document.getElementById("modalBackdrop");
+var modalEyebrow = document.getElementById("modalEyebrow");
+var modalTitle = document.getElementById("modalTitle");
+var modalBody = document.getElementById("modalBody");
+var modalWhy = document.getElementById("modalWhy");
+var modalQuote = document.getElementById("modalQuote");
+var modalChartWrap = document.getElementById("modalChartWrap");
+var modalChartTitle = document.getElementById("modalChartTitle");
+var modalChartHost = document.getElementById("modalChartHost");
+var modalCard = document.querySelector(".modal-card");
+
+function openExhibit(roomIndex, exhibitIndex){
+  var room = ROOMS[roomIndex];
+  var ex = room.exhibits[exhibitIndex];
+  var accent = getComputedStyle(roomEls[roomIndex]).getPropertyValue("--accent").trim();
+  var accent2 = getComputedStyle(roomEls[roomIndex]).getPropertyValue("--accent2").trim();
+  modalCard.style.setProperty("--modal-accent", accent);
+  modalCard.style.setProperty("--modal-accent2", accent2);
+
+  modalEyebrow.textContent = room.tag.toUpperCase() + " · EXHIBIT " + (exhibitIndex+1) + " OF " + room.exhibits.length;
+  modalTitle.textContent = ex.title;
+  modalBody.innerHTML = ex.body;
+  modalWhy.innerHTML = "<strong>Why this matters:</strong> " + ex.why;
+
+  if(ex.quote){
+    modalQuote.style.display = "block";
+    modalQuote.textContent = ex.quote;
+  } else {
+    modalQuote.style.display = "none";
+  }
+
+  modalChartHost.innerHTML = "";
+  if(ex.chart){
+    modalChartTitle.textContent = ex.chart.title;
+    modalChartHost.appendChild(buildChartSvg(ex.chart));
+    modalChartWrap.style.display = "block";
+    modalChartWrap.classList.remove("is-visible");
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){ modalChartWrap.classList.add("is-visible"); });
+    });
+  } else {
+    modalChartWrap.style.display = "none";
+  }
+
+  modalBackdrop.classList.add("open");
+  document.body.classList.add("modal-open");
+}
+function closeModal(){
+  modalBackdrop.classList.remove("open");
+  document.body.classList.remove("modal-open");
+}
+document.getElementById("modalClose").addEventListener("click", closeModal);
+modalBackdrop.addEventListener("click", function(e){
+  if(e.target === modalBackdrop) closeModal();
+});
+
+})();
+</script>
+</body>
+</html>
