@@ -193,7 +193,8 @@ body.locked .crosshair.hot{transform:scale(2.2);background:var(--accent);}
 .subtitle.show{opacity:1 !important;pointer-events:auto !important;}
 .sub-eyebrow{font-family:var(--font-mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
 .sub-title{font-family:var(--font-head);font-size:1.25rem;color:var(--cream);margin:.2em 0 .35em;}
-.sub-text{font-size:.95rem;color:var(--dim);line-height:1.45;}
+.sub-text{font-size:.95rem;color:var(--dim);line-height:1.45;max-height:32vh;overflow-y:auto;}
+.sub-text b{color:var(--cream);font-family:var(--font-mono);font-size:.8rem;margin-right:.4em;}
 .sub-text strong{color:var(--accent);}
 .sub-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:.7em;}
 .sub-actions button{
@@ -264,6 +265,26 @@ body.locked .crosshair.hot{transform:scale(2.2);background:var(--accent);}
 .axis-line{stroke:rgba(255,255,255,.2);stroke-width:1;}
 .dot{fill:#15100b;stroke:var(--modal-accent,#caa14b);stroke-width:2;opacity:0;transition:opacity .4s ease;}
 .modal-chart-wrap.is-visible .dot{opacity:1;}
+.modal-facts{margin:1.1rem 0 .4rem;}
+.modal-facts h4{font-family:var(--font-mono);font-weight:600;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--modal-accent,#caa14b);margin:0 0 .6rem;}
+.modal-facts ul{margin:0;padding:0;list-style:none;display:grid;gap:.55rem;}
+.modal-facts li{position:relative;padding-left:1.1rem;color:var(--cream);font-size:.95rem;line-height:1.45;}
+.modal-facts li::before{content:"";position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--modal-accent,#caa14b);}
+.modal-facts .added{font-family:var(--font-mono);font-size:.6rem;color:rgba(240,230,210,.4);margin-top:.6rem;}
+.tl-list{display:grid;grid-template-columns:auto 1fr;gap:.55rem 1rem;margin:.2rem 0 1rem;}
+.tl-list .tl-year{font-family:var(--font-mono);font-size:.8rem;font-weight:600;color:var(--modal-accent,#caa14b);padding-top:.15em;white-space:nowrap;}
+.tl-list div{color:var(--cream);font-size:.97rem;line-height:1.45;min-width:0;}
+.term-list{margin:.2rem 0 1rem;}
+.term-list dt{font-family:var(--font-head);font-weight:700;font-size:1.08rem;color:var(--modal-accent,#caa14b);margin-top:.9rem;}
+.term-list dd{margin:.25rem 0 0;color:var(--cream);font-size:.97rem;line-height:1.5;}
+.modal-body .yrs{font-family:var(--font-mono);font-size:.8rem;color:var(--modal-accent,#caa14b);}
+.modal-body ul.caps{margin:.2rem 0 1rem;padding-left:1.1rem;color:var(--cream);}
+.modal-body ul.caps li{margin:.25rem 0;}
+.panel-action{
+  display:block;margin:1.2rem 0 .4rem;background:var(--modal-accent,#caa14b);color:#1a1509;border:none;cursor:pointer;
+  font-family:var(--font-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;padding:.8em 1.3em;border-radius:2px;
+}
+.panel-action:hover,.panel-action:focus-visible{filter:brightness(1.1);box-shadow:0 0 24px -6px var(--modal-accent,#caa14b);}
 .panel-foot{
   display:flex;align-items:center;gap:8px;padding:.8rem 1.4rem calc(.8rem + env(safe-area-inset-bottom));
   border-top:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.2);
@@ -374,7 +395,7 @@ body.touch .progress-dots{left:auto;right:16px;bottom:calc(30px + env(safe-area-
 <div class="crosshair" id="crosshair"></div>
 <button class="ui glass prompt off" id="prompt"></button>
 <div class="ui glass lock-hint off" id="lockHint">Click to look around<small>WASD to walk · Esc releases the mouse</small></div>
-<div class="ui entry-sign" id="entrySign"></div>
+<div class="ui entry-sign hide-inspect" id="entrySign"></div>
 <div class="ui glass toast" id="toast"></div>
 <div class="title-card" id="titleCard"><div class="tc-tag" id="tcTag"></div><div class="tc-title" id="tcTitle"></div><div class="tc-years" id="tcYears"></div></div>
 
@@ -396,6 +417,8 @@ body.touch .progress-dots{left:auto;right:16px;bottom:calc(30px + env(safe-area-
     <h3 class="modal-title" id="modalTitle"></h3>
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-why" id="modalWhy"></div>
+    <div class="modal-facts" id="modalFacts" hidden></div>
+    <button class="panel-action" id="panelAction" hidden></button>
     <div class="modal-chart-wrap" id="modalChartWrap">
       <div class="modal-chart-title" id="modalChartTitle"></div>
       <div id="modalChartHost"></div>
@@ -590,6 +613,135 @@ const PALETTES = [
 ];
 
 /* =====================================================================
+   EXTRA KNOWLEDGE — added for the 3D version (timelines, key terms,
+   key facts per exhibit, and the causal links shown in the final room).
+   The original texts above stay untouched.
+   ===================================================================== */
+const EXTRA = [
+  { /* Room I */
+    timeline:[
+      ["1839","Commissioner Lin Zexu destroys about 20,000 chests of British opium at Humen."],
+      ["1842","Treaty of Nanjing: five ports opened, Hong Kong ceded, 21 million silver dollars indemnity."],
+      ["1850–64","Taiping Rebellion: one of the deadliest civil wars in history, tens of millions die."],
+      ["1860","Second Opium War ends; British and French troops burn the Old Summer Palace."],
+      ["1861","Self-Strengthening reforms begin: arsenals, shipyards and translation schools."],
+      ["1895","Treaty of Shimonoseki after defeat by Japan: Taiwan ceded, a huge indemnity owed."],
+      ["1900–01","Boxer Uprising; the Boxer Protocol adds an indemnity of 450 million taels."]
+    ],
+    terms:[
+      ["Unequal treaties","Treaties signed under military pressure that gave foreign powers rights in China without equal rights in return."],
+      ["Extraterritoriality","Foreigners in China were judged by their own consuls under their own law, not by Chinese courts."],
+      ["Tael (liang)","A unit of weight, about 37 grams of silver, used as money for taxes and large payments."]
+    ],
+    facts:[
+      ["The East India Company's iron steamship Nemesis could sail up shallow rivers and outgunned Chinese war junks.","The Treaty of Nanjing opened Canton, Amoy, Foochow, Ningpo and Shanghai to British trade and residence.","China also had to pay an indemnity of 21 million silver dollars."],
+      ["Supplementary treaties in 1843–44 added extraterritoriality and the \"most-favoured-nation\" clause: a privilege given to one power went to all.","Robert Hart, a Briton, ran the Chinese Maritime Customs as Inspector-General from 1863 to 1911.","Shanghai's International Settlement was governed by a council of foreign residents."],
+      ["The treaty tariff was fixed at roughly 5 percent of the value of goods.","After 1895 and 1901, customs revenue was pledged to repay foreign loans and war indemnities.","China only regained full control over its tariffs around 1929."],
+      ["In the 1830s opium imports turned China's silver inflow into an outflow.","The price of one tael of silver rose from about 1,000 copper coins around 1800 to over 2,000 by the 1840s.","Cheap machine-spun yarn from Britain and later India undercut hand spinning in the late 1800s."]
+    ]
+  },
+  { /* Room II */
+    timeline:[
+      ["1905","The 1,300-year-old imperial examination system is abolished."],
+      ["1911","Revolution breaks out in Wuchang; provinces declare independence from the Qing."],
+      ["1912","The Republic of China is founded; the last emperor, Puyi, abdicates."],
+      ["1916","President Yuan Shikai dies; the warlord era begins."],
+      ["1919","May Fourth Movement: students protest the Versailles treaty and demand modernisation."],
+      ["1927–28","The Nationalists set up a government in Nanjing and nominally reunify China."],
+      ["1931","Japan occupies Manchuria, China's most industrialised region."],
+      ["1935","Currency reform: the paper fabi replaces silver coins."]
+    ],
+    terms:[
+      ["Self-Strengthening","A reform movement (c. 1861–1895) that adopted Western weapons and industry while keeping the old political order."],
+      ["Warlord","A regional military leader who ruled with his own army, his own taxes and often his own currency."],
+      ["Comprador","A Chinese manager or middleman working for a foreign firm in the treaty ports."]
+    ],
+    facts:[
+      ["The 1895 Treaty of Shimonoseki allowed foreigners to open factories in the treaty ports.","During the First World War European imports dropped and Chinese-owned mills boomed, often called the golden age of Chinese capitalism.","The Rong brothers built one of China's largest private flour and cotton-mill businesses from Wuxi and Shanghai."],
+      ["China's first railway, near Shanghai (1876), was bought and torn up by Qing officials a year later.","The Beijing–Zhangjiakou line (1905–1909) was the first major railway designed by a Chinese engineer, Zhan Tianyou.","In 1911 protests in Sichuan against handing railway rights to foreign-financed loans helped trigger the revolution."],
+      ["The Beiyang government in Beijing (1912–1928) was recognised abroad but controlled little beyond the capital region.","The Northern Expedition (1926–1928) brought most provinces under the Nationalists, at least on paper.","Until 1935 many kinds of silver dollars, copper coins and provincial banknotes circulated side by side."],
+      ["Estimates for 1933 suggest farming still produced about two thirds of China's national output.","Roughly four in five Chinese still lived in the countryside.","Shanghai's Nanjing Road got China's first big department stores, Sincere (1917) and Wing On (1918)."]
+    ]
+  },
+  { /* Room III */
+    timeline:[
+      ["1937","7 July: Marco Polo Bridge incident near Beijing; full-scale war with Japan."],
+      ["1937","December: Nanjing falls; Japanese troops massacre civilians and prisoners."],
+      ["1938","Chongqing becomes the wartime capital in the interior."],
+      ["1941","After Pearl Harbor the United States enters the war in the Pacific."],
+      ["1945","Japan surrenders; China regains the occupied territories."],
+      ["1946","Civil war between Nationalists and Communists resumes."],
+      ["1948","August: the gold yuan replaces the fabi and collapses within months."],
+      ["1949","1 October: the People's Republic is proclaimed; the Nationalists retreat to Taiwan."]
+    ],
+    terms:[
+      ["Fabi","The Nationalist paper currency introduced in 1935, replacing silver coins."],
+      ["Hyperinflation","Prices rising so fast (often defined as over 50 percent a month) that money stops being a way to save."],
+      ["Gold yuan","A currency launched in August 1948 at 1 gold yuan to 3 million fabi; it lost almost all value within a year."]
+    ],
+    facts:[
+      ["Hundreds of factories were dismantled and shipped up the Yangtze to keep producing in the interior.","Chongqing became the wartime capital; supplies came over the Burma Road and, later, by air over \"the Hump\" of the Himalayas.","Tens of millions of refugees fled west ahead of the Japanese army."],
+      ["Taxes covered only a small part of wartime spending; most of the rest came from new banknotes.","So many notes were needed that some were printed abroad and flown into China.","Prices kept rising after 1945 as the civil war restarted."],
+      ["The gold yuan was introduced on 19 August 1948.","Citizens had to hand in their gold, silver and foreign currency in exchange for the new notes.","Price controls in Shanghai, enforced by Chiang Ching-kuo, broke down within about two months."],
+      ["People increasingly priced goods in rice, cloth or silver dollars instead of paper money.","In Communist-held areas, wartime policy first reduced rents and interest, then redistributed land after 1946.","On 1 October 1949 Mao Zedong proclaimed the People's Republic of China in Beijing."]
+    ]
+  },
+  { /* Room IV */
+    timeline:[
+      ["1950","Agrarian Reform Law: land is taken from landlords and redistributed."],
+      ["1953","First Five-Year Plan, with Soviet loans, experts and 156 key industrial projects."],
+      ["1956","Private industry and trade are turned into state-owned or joint enterprises."],
+      ["1958","Great Leap Forward; people's communes and the hukou registration system."],
+      ["1959–61","Great Famine: tens of millions die."],
+      ["1960","The Soviet Union withdraws its advisers."],
+      ["1966–76","Cultural Revolution."],
+      ["1976","Mao Zedong dies; the Gang of Four is arrested."]
+    ],
+    terms:[
+      ["Five-Year Plan","A state plan setting production targets for industry and agriculture over five years."],
+      ["People's commune","A large collective (from 1958) that ran farming, industry, schools and canteens for thousands of households."],
+      ["Hukou","Household registration that tied every person to a place and to urban or rural status."]
+    ],
+    facts:[
+      ["Around 300 million peasants received land in the early 1950s.","Land reform was violent: estimates of landlords killed range from hundreds of thousands to a few million.","By 1956 most farmers had been organised into collectives."],
+      ["The 1958 steel target was doubled to 10.7 million tonnes.","Much of the iron from backyard furnaces was too brittle to use.","Historians estimate the famine of 1959–1961 killed roughly 15 to 45 million people."],
+      ["Grain, cooking oil and cloth were rationed with coupons.","The \"iron rice bowl\" promised lifelong jobs and housing in state work units.","From 1968 about 17 million urban \"sent-down youth\" were moved to the countryside."],
+      ["From 1958 communal canteens replaced family kitchens in many villages.","Free canteen meals encouraged waste at first, then shortages as grain ran out.","In December 1978 the Third Plenum began the turn towards reform."]
+    ]
+  },
+  { /* Room V */
+    timeline:[
+      ["1978","December: the Third Plenum launches \"reform and opening-up\"."],
+      ["1980","Shenzhen, Zhuhai, Shantou and Xiamen become Special Economic Zones."],
+      ["1984","Fourteen more coastal cities are opened to foreign investment."],
+      ["1992","Deng Xiaoping's Southern Tour revives reform after a pause."],
+      ["2001","China joins the World Trade Organization."],
+      ["2010","China overtakes Japan as the world's second-largest economy."],
+      ["2013","The Belt and Road Initiative is announced."]
+    ],
+    terms:[
+      ["Special Economic Zone","An area with lower taxes and freer rules for foreign investment and exports, first set up in 1980."],
+      ["Household Responsibility System","Families contract land from the collective, deliver a quota and keep or sell the rest."],
+      ["Floating population","Migrants living in cities without a local hukou, often without equal access to schools and welfare."]
+    ],
+    facts:[
+      ["Deng first used the black-cat, white-cat saying in 1962, and was criticised for it during the Cultural Revolution.","Reformers called their method \"crossing the river by feeling the stones\": test a policy locally, then expand it.","Decollectivisation, foreign investment and private business were all introduced step by step."],
+      ["Shenzhen grew from a border town of roughly 30,000 people to over 17 million at the 2020 census.","China joined the World Trade Organization in 2001.","In 2010 China overtook Japan as the world's second-largest economy."],
+      ["In 1978, 18 households in Xiaogang village (Anhui) secretly divided their collective land and sealed the deal with thumbprints.","By the mid-1980s the people's communes had been dissolved.","Grain output rose from about 305 million tonnes in 1978 to about 407 million tonnes in 1984."],
+      ["In the early 2020s nearly 300 million rural migrant workers worked away from home.","The urban share of the population rose from about 18 percent in 1978 to about two thirds in the 2020s.","The World Bank counts close to 800 million people in China lifted out of extreme poverty since 1978."]
+    ]
+  }
+];
+/* causal links between the eras, shown on the 3D timeline of the final room */
+const EXTRA_LINKS = [
+  "Lost wars, indemnities and a tariff set abroad left the Qing state short of money; reformers concluded that only industry could restore its strength.",
+  "Industry and railways clustered on the coast, exactly where the Japanese invasion struck first in 1937.",
+  "Hyperinflation wiped out savings and trust in the Nationalists; the Communists' promise of land and stable prices won them the country.",
+  "The famine and the Cultural Revolution discredited ideology-first planning and opened the door to markets and foreign trade.",
+  "Markets and trade made China the world's workshop and revived the old questions about inequality and about who controls trade, land and capital."
+];
+
+/* =====================================================================
    SVG CHARTS (info panel) — same renderers as the classic version
    ===================================================================== */
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -726,8 +878,7 @@ async function createMuseum(THREE){
     {key:"r5",    w:22, d:28, h:9,   content:4},
     {key:"final", w:30, d:30, h:10,  content:5}
   ];
-  /* Build stage 1: entrance hall + Room I. Further rooms follow in the next stage. */
-  const BUILT = new Set(["foyer","r1"]);
+  const BUILT = new Set(["foyer","r1","r2","r3","r4","r5","final"]);
   {
     let z = 0;
     LAYOUT.forEach((L, i) => { L.index = i; L.zMax = z; L.zMin = z - L.d; L.cz = (L.zMax + L.zMin)/2; L.built = BUILT.has(L.key); z = L.zMin - PASSAGE; });
@@ -865,7 +1016,7 @@ async function createMuseum(THREE){
     const buckets = new Map();
     (function collect(o){
       if(o.userData.dynamic) return;
-      if(o.isMesh && !Array.isArray(o.material) && !o.material.transparent && o.visible && o.geometry.attributes.uv && o.geometry.attributes.normal){
+      if(o.isMesh && !o.isInstancedMesh && !Array.isArray(o.material) && !o.material.transparent && o.visible && o.geometry.attributes.uv && o.geometry.attributes.normal){
         const k = o.material.uuid + "|" + o.castShadow;
         if(!buckets.has(k)) buckets.set(k, []);
         buckets.get(k).push(o);
@@ -988,15 +1139,14 @@ async function createMuseum(THREE){
     const floor = mesh(new PlaneGeometry(w, d), new MeshStandardMaterial({map:texFor(o.floorTex, w, d, o.floorTile || 2.5), roughness:o.floorRough ?? .55, metalness:.05}), 0, 0, L.cz, false);
     floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; g.add(floor);
     // ceiling
-    const ceil = mesh(new PlaneGeometry(w, d), o.ceilMat, 0, h, L.cz, false);
-    ceil.rotation.x = Math.PI/2; g.add(ceil);
+    if(!o.noCeiling){ const ceil = mesh(new PlaneGeometry(w, d), o.ceilMat, 0, h, L.cz, false); ceil.rotation.x = Math.PI/2; g.add(ceil); }
     // walls
     const wm = o.wallMat;
     const left = wall(d, h, wm); left.position.set(-w/2, 0, L.cz); left.rotation.y = Math.PI/2; g.add(left);
     const right = wall(d, h, wm); right.position.set(w/2, 0, L.cz); right.rotation.y = -Math.PI/2; g.add(right);
     const far = wall(w, h, wm, o.exitOpening === undefined ? {type:"rect", w:DOOR_W, h:DOOR_H} : o.exitOpening); far.position.set(0, 0, L.zMin); g.add(far);
     const near = wall(w, h, wm, o.entryOpening === undefined ? {type:"rect", w:DOOR_W, h:DOOR_H} : o.entryOpening); near.position.set(0, 0, L.zMax); near.rotation.y = Math.PI; g.add(near);
-    walkRects.push({x0:-w/2+.45, x1:w/2-.45, z0:L.zMin+.45, z1:L.zMax-.45, room:L.index});
+    if(!o.noWalk) walkRects.push({x0:-w/2+.45, x1:w/2-.45, z0:L.zMin+.45, z1:L.zMax-.45, room:L.index});
   }
   function doorFrame(g, z, facing, mat, w=DOOR_W, h=DOOR_H){
     const t = .22;
@@ -1355,7 +1505,7 @@ async function createMuseum(THREE){
     });
     obstacles.push({x:cfg.x, z:L.zMax - cfg.zr, r:1.0});
     const rec = {kind:"exhibit", room:L.index, content:L.content, index:idx, data:ex, root, focus, front, rotY, ring, mats, model, hit:hb, pal,
-      viewDist:model.viewDist || 2.2, glow:0, accent:new Color(pal.accent)};
+      viewDist:model.viewDist || 2.2, glow:0, accent:new Color(pal.accent), navGroup:"ex-" + L.index, navIndex:idx, reach:4.2};
     hb.userData.exhibit = rec;
     exhibits.push(rec);
     if(model.update) updaters.push((t) => { if(currentRoom === L.index || inspectTarget === rec) model.update(t); });
@@ -1393,7 +1543,7 @@ async function createMuseum(THREE){
     chartRec.group.updateMatrixWorld(true);
     const rec = {kind:"chart", room:L.index, content:L.content, index:exhibitRec.index, data:exhibitRec.data, root:chartRec.group,
       focus:new Vector3(x, 1.5, L.zMax - zr), front:new Vector3(0, 0, 1), rotY:0, ring:null, mats:[], model:null, hit:hb, pal:exhibitRec.pal,
-      viewDist:4.6, glow:0, accent:exhibitRec.accent, label:"Data installation"};
+      viewDist:4.6, glow:0, accent:exhibitRec.accent, label:"Data: " + exhibitRec.data.chart.title.replace("Fig. — ", ""), navGroup:"ex-" + L.index, navIndex:exhibitRec.index + .5, reach:5.5};
     hb.userData.exhibit = rec;
     exhibits.push(rec);
     updaters.push((t) => chartRec.update(t));
@@ -1565,26 +1715,1052 @@ async function createMuseum(THREE){
     for(let i=0;i<cfgs.length;i++){ recs.push(await addExhibit(L, i, Object.assign({plinthMat, trimMat:gold}, cfgs[i]), pal)); }
     const chartData = ROOMS[0].exhibits[1].chart;
     registerChart(L, buildBarChart3D(chartData, pal), recs[1], 0, 13);
+    infoBoards(L, pal, {w:Math.min(6, L.w/2 - 3.4), h:2.9, y:2.1, gap:1.9, bg:"#1a0c09", frame:gold});
     addDust(L, 0xffc890, 280);
   }
 
-  /* locked door sign for rooms of the next build stage */
-  function buildLockedNotice(a){
-    const A = LAYOUT[a], B = LAYOUT[a+1];
-    const g = roomGroups[a];
-    const meta = metaOf(B);
-    const brass = std("brass");
-    [-1.7, 1.7].forEach(x => { g.add(mesh(new CylinderGeometry(.04, .05, .95, 10), brass, x, .475, A.zMin + 1.4)); g.add(mesh(new CylinderGeometry(.14, .16, .05, 16), brass, x, .025, A.zMin + 1.4)); g.add(mesh(new SphereGeometry(.06, 10, 8), brass, x, .98, A.zMin + 1.4)); });
-    const rope = new THREE.CatmullRomCurve3([new Vector3(-1.7, .92, A.zMin + 1.4), new Vector3(0, .62, A.zMin + 1.4), new Vector3(1.7, .92, A.zMin + 1.4)]);
-    g.add(mesh(new THREE.TubeGeometry(rope, 24, .025, 6), std("velvet", {color:0x7a0f12, roughness:.9})));
-    const sign = textPanel(1.5, .62, (c, w, h) => {
-      c.fillStyle = "#15100b"; c.fillRect(0, 0, w, h); c.strokeStyle = "#caa14b"; c.lineWidth = 3; c.strokeRect(6, 6, w-12, h-12);
-      c.textAlign = "center"; c.fillStyle = "#caa14b"; c.font = F.mono(18, 600); c.fillText("NEXT: " + meta.tag.toUpperCase() + " · " + meta.years, w/2, 40);
-      c.fillStyle = "#f0e6d2"; c.font = F.head(34); c.fillText(meta.title, w/2, 84);
-      c.fillStyle = "rgba(240,230,210,.6)"; c.font = F.mono(15); c.fillText("Opens in the next build stage", w/2, 116);
-    }, {ppm:220});
-    sign.position.set(0, 1.05, A.zMin + 1.45); g.add(sign);
-    obstacles.push({x0:-1.8, x1:1.8, z0:A.zMin, z1:A.zMin + 1.8});
+  /* =====================================================================
+     STAGE 2 — SHARED BUILDING BLOCKS
+     ===================================================================== */
+  function brickTex(base, mortar, seed){
+    return canvasTex(256, 256, (g, w, h) => {
+      const r = rnd(seed); g.fillStyle = mortar; g.fillRect(0, 0, w, h);
+      const bh = 32, bw = 64;
+      for(let y=0;y<h;y+=bh){ const off = (y/bh) % 2 ? bw/2 : 0; for(let x=-bw;x<w+bw;x+=bw){ g.fillStyle = shade(base, .72 + r()*.5); g.fillRect(x + off + 2, y + 2, bw - 4, bh - 4); } }
+      for(let i=0;i<600;i++){ g.fillStyle = r() > .5 ? "rgba(0,0,0,.12)" : "rgba(255,255,255,.04)"; g.fillRect(r()*w, r()*h, 2, 2); }
+    }, [1, 1]);
+  }
+  function concreteTex(base, seed, ties){
+    return canvasTex(512, 512, (g, w, h) => {
+      const r = rnd(seed); g.fillStyle = base; g.fillRect(0, 0, w, h);
+      for(let i=0;i<3000;i++){ g.fillStyle = r() > .5 ? "rgba(255,255,255,.035)" : "rgba(0,0,0,.07)"; g.fillRect(r()*w, r()*h, 1 + r()*3, 1 + r()*3); }
+      for(let i=0;i<10;i++){ const gr = g.createRadialGradient(r()*w, r()*h, 0, r()*w, r()*h, 40 + r()*90); gr.addColorStop(0, "rgba(0,0,0,.18)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, w, h); }
+      g.strokeStyle = "rgba(0,0,0,.35)"; g.lineWidth = 1.2;
+      for(let k=0;k<5;k++){ g.beginPath(); let x = r()*w, y = r()*h; g.moveTo(x, y); for(let q=0;q<7;q++){ x += r()*40 - 20; y += r()*40 - 10; g.lineTo(x, y); } g.stroke(); }
+      if(ties){ g.fillStyle = "rgba(0,0,0,.35)"; for(let x=64;x<w;x+=128) for(let y=64;y<h;y+=128){ g.beginPath(); g.arc(x, y, 5, 0, Math.PI*2); g.fill(); } g.fillStyle = "rgba(0,0,0,.18)"; g.fillRect(0, h/2 - 1, w, 2); }
+    }, [1, 1]);
+  }
+  function tileTex(a, b, line){
+    return canvasTex(256, 256, (g, w, h) => {
+      g.fillStyle = a; g.fillRect(0, 0, w, h); g.fillStyle = b; g.fillRect(0, 0, w/2, h/2); g.fillRect(w/2, h/2, w/2, h/2);
+      g.fillStyle = line; g.fillRect(0, 0, w, 2); g.fillRect(0, h/2 - 1, w, 2); g.fillRect(0, 0, 2, h); g.fillRect(w/2 - 1, 0, 2, h);
+    }, [1, 1]);
+  }
+  function windowGridTex(glass, frame){
+    return canvasTex(256, 512, (g, w, h) => {
+      const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, glass); gr.addColorStop(1, shade(glass, .7)); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      g.fillStyle = frame; for(let x=0;x<=w;x+=w/4) g.fillRect(x - 4, 0, 8, h); for(let y=0;y<=h;y+=h/8) g.fillRect(0, y - 4, w, 8);
+      g.fillRect(0, 0, w, 14); g.fillRect(0, h - 14, w, 14); g.fillRect(0, 0, 14, h); g.fillRect(w - 14, 0, 14, h);
+    });
+  }
+  function skylineTex(seed, sky1, sky2, lit){
+    return canvasTex(1024, 512, (g, w, h) => {
+      const r = rnd(seed);
+      const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, sky1); gr.addColorStop(1, sky2); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      for(let i=0;i<60;i++){ g.fillStyle = "rgba(255,255,255," + (r()*.5) + ")"; g.fillRect(r()*w, r()*h*.4, 1.5, 1.5); }
+      for(let layer=0; layer<2; layer++){
+        let x = -10;
+        while(x < w){
+          const bw = 30 + r()*70, bh = (layer ? 120 : 200) + r()*(layer ? 160 : 260);
+          g.fillStyle = layer ? "#0a1a22" : "#06121a"; g.fillRect(x, h - bh, bw, bh);
+          if(!layer){
+            for(let wy = h - bh + 10; wy < h - 6; wy += 12) for(let wx = x + 5; wx < x + bw - 6; wx += 9){ if(r() < .42){ g.fillStyle = r() < .8 ? lit : "#7fe8d0"; g.globalAlpha = .45 + r()*.55; g.fillRect(wx, wy, 5, 6); g.globalAlpha = 1; } }
+            if(r() < .2){ g.fillStyle = "#ff4a3a"; g.fillRect(x + bw/2 - 1, h - bh - 18, 3, 18); }
+          }
+          x += bw + (layer ? -10 : 4 + r()*10);
+        }
+      }
+    });
+  }
+  function noteTex(base, title, value, seed){
+    return canvasTex(256, 128, (c, w, h) => {
+      const r = rnd(seed || 3);
+      c.fillStyle = base; c.fillRect(0, 0, w, h);
+      c.strokeStyle = "rgba(0,0,0,.45)"; c.lineWidth = 4; c.strokeRect(6, 6, w - 12, h - 12);
+      c.lineWidth = 1; c.strokeStyle = "rgba(255,255,255,.25)"; for(let i=0;i<18;i++){ c.beginPath(); c.arc(w/2, h/2, 10 + i*3, 0, Math.PI*2); c.stroke(); }
+      c.fillStyle = "rgba(0,0,0,.6)"; c.font = F.mono(13, 600); c.textAlign = "center"; c.fillText(title, w/2, 26);
+      c.font = F.head(40); c.fillText(value, 46, h/2 + 14); c.fillText(value, w - 46, h/2 + 14);
+      for(let i=0;i<30;i++){ c.fillStyle = "rgba(0,0,0," + (r()*.12) + ")"; c.fillRect(r()*w, r()*h, 3, 3); }
+    });
+  }
+  function gearGeo(rad, teeth, depth, hole){
+    const s = new Shape(); const tooth = rad*.13; const N = teeth*4;
+    for(let i=0;i<N;i++){ const a = i/N*Math.PI*2; const rr = (i % 4 < 2) ? rad + tooth : rad; const x = Math.cos(a)*rr, y = Math.sin(a)*rr; if(i) s.lineTo(x, y); else s.moveTo(x, y); }
+    s.closePath();
+    if(hole){ const hp = new Path(); hp.absarc(0, 0, hole, 0, Math.PI*2, true); s.holes.push(hp); }
+    const geo = new ExtrudeGeometry(s, {depth, bevelEnabled:false, curveSegments:10}); geo.translate(0, 0, -depth/2); return geo;
+  }
+  function smokeEmitter(parent, origin, o={}){
+    const n = o.n || 6;
+    const base = new MeshStandardMaterial({color:o.color || 0x9a948c, roughness:1, transparent:true, opacity:.5, depthWrite:false});
+    const puffs = [];
+    for(let i=0;i<n;i++){ const p = new Mesh(new SphereGeometry(o.size || .06, 10, 8), base.clone()); parent.add(p); puffs.push(p); }
+    return (t) => puffs.forEach((p, i) => {
+      const k = (t*(o.speed || .22) + i/n) % 1;
+      p.position.set(origin.x + k*(o.drift ?? -.4), origin.y + k*(o.rise || .55), origin.z + Math.sin(k*6 + i)*.04);
+      const sc = .5 + k*1.6; p.scale.set(sc, sc, sc); p.material.opacity = (o.opacity || .45)*(1 - k);
+    });
+  }
+  function prism(w, hgt, depth, mat){
+    const s = new Shape(); s.moveTo(-w/2, 0); s.lineTo(w/2, 0); s.lineTo(0, hgt); s.closePath();
+    const geo = new ExtrudeGeometry(s, {depth, bevelEnabled:false}); geo.translate(0, 0, -depth/2);
+    return new Mesh(geo, mat);
+  }
+  function fmtVal(v){ return v >= 1e6 ? (v/1e6) + "m" : v >= 1000 ? Math.round(v/1000) + "k" : String(v); }
+
+  /* generic inspectable (wall boards, timeline nodes, curator's note …) */
+  function addInspectable(L, o){
+    const g = o.parent || roomGroups[L.index];
+    const hb = new Mesh(new BoxGeometry(o.hit[0], o.hit[1], o.hit[2]), new MeshBasicMaterial());
+    hb.position.copy(o.hitPos); if(o.hitRotY) hb.rotation.y = o.hitRotY; hb.visible = false; g.add(hb);
+    const rec = Object.assign({room:L.index, content:L.content, index:0, root:null, ring:null, mats:[], model:null, hit:hb, glow:0, viewDist:3.2, reach:4.5}, o);
+    rec.accent = new Color(rec.pal.accent);
+    hb.userData.exhibit = rec;
+    exhibits.push(rec);
+    return rec;
+  }
+
+  /* timeline + key-terms boards on the far wall */
+  function fitRows(c, rows, W, H, top, font, keyW){
+    for(let s = 22; s >= 11; s--){
+      c.font = font(s);
+      let y = top;
+      const lay = rows.map(([k, v]) => { const lines = wrapText(c, v, W - keyW - 60); const hh = lines.length*s*1.28 + s*.75; const r = {k, lines, y}; y += hh; return r; });
+      if(y <= H - 22 || s === 11) return {s, lay};
+    }
+  }
+  function infoBoards(L, pal, o){
+    const ex = EXTRA[L.content], meta = ROOMS[L.content];
+    const g = roomGroups[L.index];
+    const pw = o.w, ph = o.h, y = o.y, gap = o.gap || 1.9;
+    const bg = o.bg || "#15100b", frame = o.frame;
+    const boards = [
+      {sub:"timeline", x:-(gap + pw/2), title:"Timeline · " + meta.years, rows:ex.timeline, keyW:118},
+      {sub:"terms", x:(gap + pw/2), title:"Key terms", rows:ex.terms, keyW:190}
+    ];
+    boards.forEach((b) => {
+      const p = textPanel(pw, ph, (c, w, h) => {
+        c.fillStyle = bg; c.fillRect(0, 0, w, h);
+        c.strokeStyle = pal.accent; c.lineWidth = 3; c.strokeRect(8, 8, w - 16, h - 16);
+        c.fillStyle = pal.accent; c.font = F.mono(15, 600); c.textBaseline = "alphabetic"; c.fillText((meta.tag + " · " + (b.sub === "timeline" ? "Timeline" : "Key terms")).toUpperCase(), 30, 40);
+        c.fillStyle = "#f0e6d2"; c.font = F.head(30); c.fillText(b.title, 30, 78);
+        c.fillStyle = hexA(pal.accent, .5); c.fillRect(30, 92, w - 60, 2);
+        const fit = fitRows(c, b.rows, w, h, 124, (s) => F.body(s), b.keyW);
+        fit.lay.forEach((r) => {
+          c.fillStyle = pal.accent; c.font = (b.sub === "timeline" ? F.mono(fit.s, 600) : F.head(fit.s*.98));
+          if(b.sub === "timeline") c.fillText(r.k, 30, r.y);
+          else { const kl = wrapText(c, r.k, b.keyW - 10); kl.forEach((ln, i) => c.fillText(ln, 30, r.y + i*fit.s*1.1)); }
+          c.fillStyle = "rgba(240,230,210,.85)"; c.font = F.body(fit.s);
+          r.lines.forEach((ln, i) => c.fillText(ln, 30 + b.keyW, r.y + i*fit.s*1.28));
+        });
+      }, {ppm:160, res:2});
+      p.position.set(b.x, y, L.zMin + .05); g.add(p);
+      if(frame) g.add(mesh(new BoxGeometry(pw + .12, ph + .12, .05), frame, b.x, y, L.zMin + .02, false));
+      const html = b.sub === "timeline"
+        ? '<div class="tl-list">' + b.rows.map(([k, v]) => '<div class="tl-year">' + k + '</div><div>' + v + '</div>').join("") + '</div>'
+        : '<dl class="term-list">' + b.rows.map(([k, v]) => '<dt>' + k + '</dt><dd>' + v + '</dd>').join("") + '</dl>';
+      addInspectable(L, {kind:"info", sub:b.sub, pal, hit:[pw, ph, .3], hitPos:new Vector3(b.x, y, L.zMin + .2),
+        focus:new Vector3(b.x, y, L.zMin + .05), front:new Vector3(0, 0, 1), viewDist:Math.max(3.4, pw*.8), reach:5,
+        label:b.sub === "timeline" ? "Timeline " + meta.years : "Key terms", navGroup:"info-" + L.index, navIndex:b.sub === "timeline" ? 0 : 1,
+        data:{title:b.title, html, eyebrow:meta.tag.toUpperCase() + " · " + (b.sub === "timeline" ? "TIMELINE" : "KEY TERMS")}});
+    });
+  }
+  function roomTitlePanel(L, pal, y, wM, hM, bg){
+    const meta = metaOf(L);
+    const p = textPanel(wM, hM, (c, w, h) => {
+      c.fillStyle = bg; c.fillRect(0, 0, w, h); c.strokeStyle = pal.accent; c.lineWidth = 4; c.strokeRect(10, 10, w - 20, h - 20);
+      c.textAlign = "center";
+      c.fillStyle = pal.accent; c.font = F.mono(Math.round(h*.12), 600); c.fillText(meta.tag.toUpperCase(), w/2, h*.27);
+      let fs = Math.round(h*.38); c.fillStyle = "#f0e6d2"; c.font = F.head(fs);
+      while(c.measureText(meta.title).width > w*.88 && fs > 10){ fs -= 2; c.font = F.head(fs); }
+      c.fillText(meta.title, w/2, h*.65);
+      c.fillStyle = "rgba(240,230,210,.7)"; c.font = F.mono(Math.round(h*.11)); c.fillText(meta.years, w/2, h*.86);
+    }, {ppm:150});
+    p.position.set(0, y, L.zMin + .04); roomGroups[L.index].add(p); return p;
+  }
+  function entryStand(L, pal, text, poleMat, bg){
+    const g = roomGroups[L.index], meta = metaOf(L);
+    const stand = new Group(); stand.position.set(-2.8, 0, L.zMax - 2.4); stand.rotation.y = .35; g.add(stand);
+    stand.add(mesh(new BoxGeometry(1.3, .08, .5), poleMat, 0, .04, 0));
+    stand.add(mesh(new BoxGeometry(.08, 1.6, .08), poleMat, 0, .8, 0));
+    const sp = textPanel(1.2, .9, (c, w, h) => {
+      c.fillStyle = bg; c.fillRect(0, 0, w, h); c.fillStyle = pal.accent; c.fillRect(0, 0, w, 6);
+      c.fillStyle = pal.accent; c.font = F.mono(16, 600); c.fillText(meta.tag.toUpperCase() + " · " + meta.years, 22, 40);
+      c.fillStyle = "#f0e6d2"; let fs = 36; c.font = F.head(fs); while(c.measureText(meta.title).width > w - 44 && fs > 18){ fs--; c.font = F.head(fs); } c.fillText(meta.title, 22, 84);
+      c.fillStyle = "rgba(240,230,210,.78)"; let bs = 18; c.font = F.body(bs);
+      let lines = wrapText(c, text, w - 44); while(lines.length*bs*1.25 > h - 120 && bs > 11){ bs--; c.font = F.body(bs); lines = wrapText(c, text, w - 44); }
+      lines.forEach((ln, i) => c.fillText(ln, 22, 118 + i*bs*1.25));
+    }, {ppm:220, res:3});
+    sp.position.set(0, 1.55, .05); stand.add(sp);
+    stand.add(mesh(new BoxGeometry(1.26, .96, .04), poleMat, 0, 1.55, 0));
+    obstacles.push({x:-2.8, z:L.zMax - 2.4, r:.6});
+  }
+
+  /* 3D line chart: columns rise, then the line draws itself */
+  function buildLineChart3D(chart, pal, opts={}){
+    const g = new Group(); g.userData.dynamic = true;
+    const n = chart.values.length, maxH = opts.maxH || 2.1, step = opts.step || .6;
+    const width = (n - 1)*step + 1.2;
+    g.add(mesh(new BoxGeometry(width, .5, 1.3), std("chartBase", {color:0x15100b, roughness:.5}), 0, .25, 0));
+    g.add(mesh(new BoxGeometry(width + .06, .03, 1.36), std("brass"), 0, .5, 0));
+    const xs = chart.values.map((v, i) => -width/2 + .6 + i*step);
+    const front = textPanel(width - .1, .4, (c, w, h) => {
+      c.fillStyle = "#15100b"; c.fillRect(0, 0, w, h);
+      c.fillStyle = "rgba(240,230,210,.75)"; c.font = F.mono(n > 7 ? 24 : 28, 600); c.textAlign = "center"; c.textBaseline = "middle";
+      chart.cats.forEach((cat, i) => c.fillText(cat, (xs[i] + width/2)/width*w, h/2));
+    }, {ppm:200});
+    front.position.set(0, .25, .651); g.add(front);
+    const sc = chart.values.map(v => chart.log ? Math.log10(Math.max(v, 1) + 1) : v);
+    const mx = Math.max(...sc), mn = Math.min(...sc), rng = (mx - mn) || 1;
+    const hs = sc.map(v => .2 + (v - mn)/rng*(maxH - .2));
+    const colMat = new MeshStandardMaterial({color:pal.accent2, roughness:.4, metalness:.2, transparent:true, opacity:.55, emissive:new Color(pal.accent2), emissiveIntensity:.25});
+    const topMat = new MeshStandardMaterial({color:pal.accent, roughness:.3, metalness:.4, emissive:new Color(pal.accent), emissiveIntensity:.5});
+    const cols = [], tops = [], labels = [];
+    hs.forEach((hh, i) => {
+      const geo = new CylinderGeometry(.05, .05, 1, 12); geo.translate(0, .5, 0);
+      const c = new Mesh(geo, colMat); c.position.set(xs[i], .515, 0); c.scale.y = .001; g.add(c); cols.push(c);
+      const t = new Mesh(new SphereGeometry(.075, 16, 12), topMat); t.position.set(xs[i], .515, 0); g.add(t); tops.push(t);
+      const tex = canvasTex(256, 96, (cc, w, h) => { cc.fillStyle = "#f0e6d2"; cc.font = F.mono(50, 600); cc.textAlign = "center"; cc.textBaseline = "middle"; cc.fillText(fmtVal(chart.values[i]), w/2, h/2); });
+      const sp = new Sprite(new SpriteMaterial({map:tex, transparent:true, opacity:0, depthWrite:false, toneMapped:false})); sp.scale.set(.5, .19, 1); g.add(sp); labels.push(sp);
+    });
+    const path = new THREE.CurvePath();
+    for(let i=0;i<n-1;i++) path.add(new THREE.LineCurve3(new Vector3(xs[i], .515 + hs[i], 0), new Vector3(xs[i+1], .515 + hs[i+1], 0)));
+    const segs = (n - 1)*16, radial = 8;
+    const tube = new Mesh(new THREE.TubeGeometry(path, segs, .035, radial, false), new MeshStandardMaterial({color:pal.accent, emissive:new Color(pal.accent), emissiveIntensity:.8, roughness:.3}));
+    tube.geometry.setDrawRange(0, 0); g.add(tube);
+    const area = new Shape(); area.moveTo(xs[0], 0); hs.forEach((hh, i) => area.lineTo(xs[i], hh)); area.lineTo(xs[n-1], 0); area.closePath();
+    const areaMesh = new Mesh(new ShapeGeometry(area), new MeshBasicMaterial({color:pal.accent, transparent:true, opacity:0, side:DoubleSide, depthWrite:false, toneMapped:false}));
+    areaMesh.position.set(0, .515, -.01); g.add(areaMesh);
+    const title = textPanel(width, .5, (c, w, h) => {
+      c.fillStyle = "rgba(21,16,11,.92)"; c.fillRect(0, 0, w, h); c.fillStyle = pal.accent; c.fillRect(0, h - 5, w, 5);
+      c.fillStyle = pal.accent; c.font = F.mono(30, 600); c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(chart.title.toUpperCase(), w/2, h/2 - 2);
+    }, {ppm:200});
+    title.position.set(0, maxH + 1.15, -.55); g.add(title);
+    [-1, 1].forEach(s => g.add(mesh(new CylinderGeometry(.02, .02, maxH + .9, 8), std("brass"), s*(width/2 - .05), .5 + (maxH + .9)/2, -.55)));
+    const total = tube.geometry.index.count, perSeg = radial*6;
+    let t0 = -1;
+    return {group:g, width, depth:1.3,
+      reset(){ t0 = -1; cols.forEach(c => c.scale.y = .001); tops.forEach(t => t.position.y = .515); labels.forEach(l => l.material.opacity = 0); tube.geometry.setDrawRange(0, 0); areaMesh.material.opacity = 0; areaMesh.scale.y = .001; },
+      start(t){ t0 = t; },
+      update(t){
+        if(t0 < 0) return;
+        const k = Math.min(1, Math.max(0, (t - t0 - .6)/1.8)), e = 1 - Math.pow(1 - k, 3);
+        hs.forEach((hh, i) => { const h2 = Math.max(.001, hh*e); cols[i].scale.y = h2; tops[i].position.y = .515 + h2; labels[i].position.set(xs[i], .515 + h2 + .22, 0); });
+        areaMesh.scale.y = Math.max(.001, e);
+        const k2 = Math.min(1, Math.max(0, (t - t0 - 2.2)/2.2));
+        tube.geometry.setDrawRange(0, Math.floor(k2*total/perSeg)*perSeg);
+        areaMesh.material.opacity = .16*k2;
+        labels.forEach((l, i) => { l.material.opacity = Math.min(1, Math.max(0, k2*(n - 1) - i + 1)); });
+      }};
+  }
+  /* four exhibits + data installation + boards, same layout logic in every room */
+  async function standardExhibits(L, pal, models, mats, o={}){
+    const x = o.x || (L.w/2 - 4.2);
+    const zr = [.25, .365, .635, .75].map(f => f*L.d);
+    const recs = [];
+    for(let i=0;i<4;i++){
+      recs.push(await addExhibit(L, i, {x:(i % 2 ? x : -x), zr:zr[i], model:models[i], plinthMat:mats.plinth, trimMat:mats.trim}, pal));
+    }
+    const chart = ROOMS[L.content].exhibits[1].chart;
+    const built = chart.type === "bar" ? buildBarChart3D(chart, pal) : buildLineChart3D(chart, pal);
+    registerChart(L, built, recs[1], 0, L.d/2);
+    return recs;
+  }
+
+  /* =====================================================================
+     3D MODELS — Room II
+     ===================================================================== */
+  function trackPiece(parent, x0, z0, x1, z1, mats, y=.045){
+    const dx = x1 - x0, dz = z1 - z0, len = Math.hypot(dx, dz), ang = Math.atan2(dx, dz);
+    const grp = new Group(); grp.position.set(x0, y, z0); grp.rotation.y = ang; parent.add(grp);
+    [-.025, .025].forEach(o => grp.add(mesh(new BoxGeometry(.008, .01, len), mats.rail, o, .012, len/2)));
+    const n = Math.max(1, Math.floor((len - .02)/.05) + 1);
+    const sl = new THREE.InstancedMesh(new BoxGeometry(.075, .008, .016), mats.sleeper, n); const m4 = new THREE.Matrix4();
+    for(let k=0;k<n;k++){ m4.makeTranslation(0, .004, .02 + k*.05); sl.setMatrixAt(k, m4); }
+    grp.add(sl);
+    return grp;
+  }
+  function makeLoco(color){
+    const loco = new Group();
+    const body = std("loco_" + color, {color, roughness:.45, metalness:.4});
+    const blk = std("iron");
+    const boiler = mesh(new CylinderGeometry(.028, .028, .13, 14), body, 0, .045, .03); boiler.rotation.x = Math.PI/2; loco.add(boiler);
+    loco.add(mesh(new BoxGeometry(.06, .06, .05), body, 0, .055, -.055));
+    loco.add(mesh(new BoxGeometry(.07, .008, .055), blk, 0, .088, -.055));
+    loco.add(mesh(new CylinderGeometry(.009, .012, .035, 8), blk, 0, .088, .07));
+    [-.05, 0, .05].forEach(z => [-1, 1].forEach(s => { const w = mesh(new CylinderGeometry(.016, .016, .01, 10), blk, s*.033, .018, z); w.rotation.z = Math.PI/2; loco.add(w); }));
+    return loco;
+  }
+  function makeWagon(color){
+    const w = new Group();
+    w.add(mesh(new BoxGeometry(.06, .045, .1), std("wagon_" + color, {color, roughness:.7}), 0, .045, 0));
+    [-.03, .03].forEach(z => [-1, 1].forEach(s => { const wh = mesh(new CylinderGeometry(.013, .013, .01, 10), std("iron"), s*.031, .015, z); wh.rotation.z = Math.PI/2; w.add(wh); }));
+    return w;
+  }
+  function modelFactory(pal){
+    const g = new Group();
+    const bt = brickTex("#7a4a2a", "#3a2a1c", 9); const bm = new MeshStandardMaterial({map:bt, roughness:.9}); bm.map.repeat.set(2, 1);
+    const roof = std("r2roof", {color:0x3a3f3c, roughness:.6, metalness:.4});
+    const glass = std("r2glass", {color:0xcfe0d8, emissive:0xfff0c0, emissiveIntensity:.6, roughness:.3});
+    g.add(mesh(new BoxGeometry(1.5, .04, 1.0), std("asphalt", {color:0x2a2724, roughness:.95}), 0, .02, 0));
+    g.add(mesh(new BoxGeometry(1.5, .03, .24), new MeshStandardMaterial({color:0x2a5a5c, roughness:.2, metalness:.3}), 0, .045, .38));
+    g.add(mesh(new BoxGeometry(.92, .32, .46), bm, -.16, .2, -.1));
+    for(let i=0;i<4;i++){
+      const p = prism(.23, .14, .46, roof); p.position.set(-.16 - .345 + i*.23, .36, -.1); g.add(p);
+      const gl = mesh(new PlaneGeometry(.44, .12), glass, -.16 - .345 + i*.23 - .057, .43, -.1, false); gl.rotation.y = -Math.PI/2; gl.rotation.x = -.55; g.add(gl);
+    }
+    for(let i=0;i<5;i++){ g.add(mesh(new PlaneGeometry(.1, .12), glass, -.52 + i*.18, .2, .132, false)); }
+    const chimneys = [[.38, .48, -.22, .9], [.55, .4, -.05, .72]];
+    const smokes = [];
+    chimneys.forEach(([x, , z, hh]) => {
+      g.add(mesh(new CylinderGeometry(.04, .06, hh, 12), bm, x, .04 + hh/2, z));
+      g.add(mesh(new CylinderGeometry(.05, .05, .03, 12), roof, x, .04 + hh, z));
+      smokes.push(smokeEmitter(g, new Vector3(x, .08 + hh, z), {n:6, size:.05, speed:.18, drift:-.5, rise:.6, color:0x6e6862}));
+    });
+    g.add(mesh(new BoxGeometry(.36, .22, .3), bm, .48, .15, .14));
+    const gp = prism(.38, .1, .3, roof); gp.position.set(.48, .26, .14); g.add(gp);
+    const gear = mesh(gearGeo(.09, 12, .02, .02), std("brass"), -.16, .22, .14); g.add(gear);
+    const gear2 = mesh(gearGeo(.055, 8, .02, .012), std("brass"), -.16 + .155, .22 + .015, .14); g.add(gear2);
+    const boat = new Group(); boat.position.set(-.4, .065, .38); g.add(boat);
+    boat.add(mesh(new BoxGeometry(.2, .03, .06), std("hull"), 0, 0, 0)); boat.add(mesh(new BoxGeometry(.06, .04, .04), std("ivory"), .02, .03, 0));
+    return {group:g, height:1.0, viewDist:2.3, focusY:.35, update(t){ smokes.forEach(f => f(t)); gear.rotation.z = t*.8; gear2.rotation.z = -t*.8*12/8 + .2; boat.position.x = -.5 + ((t*.04) % 1)*1.0; }};
+  }
+  function modelRailway(pal){
+    const g = new Group();
+    const W = 1.36, D = .86;
+    const tex = canvasTex(1024, 648, (c, w, h) => {
+      c.fillStyle = "#1a3a40"; c.fillRect(0, 0, w, h);
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(w*.74, 0); c.bezierCurveTo(w*.8, h*.3, w*.68, h*.5, w*.76, h*.7); c.bezierCurveTo(w*.8, h*.85, w*.7, h, w*.7, h); c.lineTo(0, h); c.closePath();
+      const land = c.createLinearGradient(0, 0, w*.7, 0); land.addColorStop(0, "#4a4a2c"); land.addColorStop(1, "#7a6a44"); c.fillStyle = land; c.fill();
+      c.strokeStyle = "#e3c98f"; c.lineWidth = 3; c.stroke();
+      c.fillStyle = "rgba(240,230,210,.75)"; c.font = F.head(34); c.fillText("Rails to the Coast", 34, 54);
+      c.font = F.mono(18); c.fillStyle = "rgba(240,230,210,.6)"; c.fillText("INLAND · resources", 40, h - 40); c.fillText("COAST · export port", w*.74, h*.55 - 14);
+    });
+    g.add(mesh(new BoxGeometry(W, .04, D), [std("mapEdge"), std("mapEdge"), new MeshStandardMaterial({map:tex, roughness:.7}), std("mapEdge"), std("mapEdge"), std("mapEdge")], 0, .02, 0));
+    const port = new Vector3(.38, .045, .04);
+    const routes = [
+      [new Vector3(-.6, .045, -.3), new Vector3(-.25, .045, -.25), new Vector3(.05, .045, -.08), port],
+      [new Vector3(-.6, .045, .3), new Vector3(-.3, .045, .25), new Vector3(.05, .045, .12), port],
+      [new Vector3(-.15, .045, -.4), new Vector3(0, .045, -.25), new Vector3(.2, .045, -.08), port]
+    ].map(pts => new THREE.CatmullRomCurve3(pts));
+    const railMat = std("rail", {color:0x8a8f94, metalness:.8, roughness:.35});
+    routes.forEach(cv => g.add(mesh(new THREE.TubeGeometry(cv, 60, .006, 5), railMat)));
+    const mountain = std("mountain", {color:0x5a5236, roughness:.9});
+    [[-.5, -.15], [-.42, .08], [-.55, .12]].forEach(([x, z], i) => g.add(mesh(new ConeGeometry(.07 + i*.01, .1 + i*.02, 6), mountain, x, .04 + .05 + i*.01, z)));
+    [[.42, .1], [.46, -.02], [.36, -.06]].forEach(([x, z]) => g.add(mesh(new BoxGeometry(.06, .05, .05), std("warehouse", {color:0x8a7a5a, roughness:.8}), x, .065, z)));
+    const crane = new Group(); crane.position.set(.5, .04, .16); g.add(crane);
+    crane.add(mesh(new BoxGeometry(.012, .2, .012), std("iron"), 0, .1, 0)); crane.add(mesh(new BoxGeometry(.16, .01, .01), std("iron"), .05, .2, 0));
+    const ship = new Group(); ship.position.set(.58, .04, .28); g.add(ship);
+    ship.add(mesh(new BoxGeometry(.16, .03, .05), std("hull"), 0, .015, 0)); ship.add(mesh(new CylinderGeometry(.008, .01, .06, 8), std("iron"), 0, .06, 0));
+    const train = [makeLoco(0x2a3a2e), makeWagon(0x6a4a2a), makeWagon(0x5a5a5a)];
+    train.forEach(o => g.add(o));
+    const tmp = new Vector3();
+    return {group:g, height:.4, viewDist:1.8, focusY:.08, update(t){
+      g.updateMatrixWorld();
+      const cv = routes[Math.floor(t/9) % routes.length];
+      const u0 = (t % 9)/9;
+      train.forEach((o, i) => { const u = Math.min(.999, Math.max(0, u0*1.08 - i*.07)); const p = cv.getPointAt(u); o.position.copy(p); tmp.copy(cv.getTangentAt(u)).add(p); o.lookAt(g.localToWorld(tmp)); });
+    }};
+  }
+  function modelFracturedMap(pal){
+    const g = new Group();
+    const pieces = [
+      [[-.55,-.4],[-.1,-.4],[-.15,-.05],[-.55,0]],
+      [[-.1,-.4],[.3,-.4],[.25,-.1],[-.15,-.05]],
+      [[.3,-.4],[.55,-.3],[.55,.05],[.25,-.1]],
+      [[-.55,0],[-.15,-.05],[-.05,.38],[-.5,.38]],
+      [[-.15,-.05],[.25,-.1],[.2,.38],[-.05,.38]],
+      [[.25,-.1],[.55,.05],[.45,.38],[.2,.38]]
+    ];
+    const cols = [0x8a6d43, 0x6f5a35, 0x9a7a4a, 0x5f4a2c, 0x7d6440, 0xa08350];
+    const coinMats = [std("copper", {color:0xb06a3a, metalness:.8, roughness:.35}), std("silver"), std("brass")];
+    const parts = pieces.map((pts, i) => {
+      const s = new Shape(); pts.forEach(([x, z], k) => k ? s.lineTo(x, -z) : s.moveTo(x, -z)); s.closePath();
+      const geo = new ExtrudeGeometry(s, {depth:.06, bevelEnabled:true, bevelThickness:.008, bevelSize:.008, bevelSegments:1});
+      geo.rotateX(-Math.PI/2);
+      const grp = new Group(); g.add(grp);
+      grp.add(mesh(geo, std("piece" + i, {color:cols[i], roughness:.8})));
+      const cx = pts.reduce((a, p) => a + p[0], 0)/pts.length, cz = pts.reduce((a, p) => a + p[1], 0)/pts.length;
+      grp.add(mesh(new CylinderGeometry(.004, .004, .2, 6), std("pinStick", {color:0xd8d0c0, metalness:.6, roughness:.4}), cx - .05, .16, cz));
+      const fl = mesh(new PlaneGeometry(.08, .05), std("flag" + i, {color:[0xb3261e, 0x2f5f8a, 0xd8b23a, 0x3a6a3a, 0x7a2a6a, 0xe0e0d8][i], side:DoubleSide}), cx - .01, .23, cz, false); grp.add(fl);
+      for(let k=0;k<3 + (i % 3);k++) grp.add(mesh(new CylinderGeometry(.03, .03, .008, 16), coinMats[i % 3], cx + .06, .066 + k*.009, cz + .03));
+      return {grp, dir:new Vector3(cx, 0, cz).normalize(), fl, phase:i};
+    });
+    return {group:g, height:.4, viewDist:1.9, focusY:.12, update(t){
+      const k = (Math.sin(t*.6) + 1)/2;
+      parts.forEach(p => { p.grp.position.set(p.dir.x*k*.07, Math.sin(t + p.phase)*.01 + k*.02, p.dir.z*k*.07); p.fl.rotation.y = Math.sin(t*2.4 + p.phase)*.4; });
+    }};
+  }
+  function modelTwoTrains(pal){
+    const g = new Group();
+    g.add(mesh(new BoxGeometry(1.5, .04, 1.0), std("r2ground", {color:0x4a4232, roughness:.95}), 0, .02, 0));
+    g.add(mesh(new BoxGeometry(.7, .045, .9), std("r2field", {color:0x6a5a34, roughness:1}), .38, .022, -.02));
+    const mats = {rail:std("rail", {color:0x8a8f94, metalness:.8, roughness:.35}), sleeper:std("sleeper", {color:0x3a2a1a, roughness:.9})};
+    const station = new Group(); station.position.set(0, .04, .36); g.add(station);
+    station.add(mesh(new BoxGeometry(.34, .1, .1), std("ivory"), 0, .05, 0));
+    station.add(mesh(new BoxGeometry(.4, .02, .14), std("r2roof"), 0, .11, 0));
+    trackPiece(g, 0, .3, -.45, -.3, mats);
+    trackPiece(g, 0, .3, .26, -.02, mats);
+    const broken = trackPiece(g, .32, -.1, .42, -.24, mats); broken.rotation.z = .25; broken.position.y = .06;
+    const city = std("r2city", {color:0x7a8288, roughness:.5, metalness:.3, emissive:0xffd890, emissiveIntensity:.15});
+    [[-.6,-.38,.35],[-.5,-.42,.5],[-.38,-.4,.28],[-.62,-.25,.22],[-.3,-.34,.18]].forEach(([x, z, hh]) => g.add(mesh(new BoxGeometry(.09, hh, .09), city, x, .04 + hh/2, z)));
+    const hut = new Group(); hut.position.set(.5, .04, -.32); g.add(hut);
+    hut.add(mesh(new BoxGeometry(.1, .06, .08), std("mud", {color:0x8a6a44, roughness:1}), 0, .03, 0));
+    const hr = prism(.13, .06, .1, std("thatch", {color:0xa08a50, roughness:1})); hr.position.y = .06; hut.add(hr);
+    const stuck = makeWagon(0x5a4a3a); stuck.position.set(.2, .045, .05); stuck.rotation.y = Math.atan2(.26, -.32); g.add(stuck);
+    const train = [makeLoco(0x2a3a2e), makeWagon(0x7a3a2a)]; train.forEach(o => g.add(o));
+    const a = new Vector3(0, .045, .28), b = new Vector3(-.43, .045, -.27), bw = new Vector3();
+    return {group:g, height:.6, viewDist:2.0, focusY:.12, update(t){
+      const u = (t*.12) % 1;
+      g.updateMatrixWorld(); bw.copy(b); bw.y = .045; g.localToWorld(bw);
+      train.forEach((o, i) => { const k = Math.max(0, u - i*.12); o.position.lerpVectors(a, b, k); o.lookAt(bw); o.visible = u > i*.12; });
+    }};
+  }
+
+  /* =====================================================================
+     3D MODELS — Room III
+     ===================================================================== */
+  function modelTank(pal){
+    const g = new Group();
+    const groundTex = canvasTex(512, 320, (c, w, h) => {
+      c.fillStyle = "#4a3a2a"; c.fillRect(0, 0, w, h); c.fillStyle = "#1a3a44"; c.fillRect(0, 0, w, h*.25);
+      c.fillStyle = "#c8b080"; c.fillRect(0, h*.25, w, 10);
+      const r = rnd(17); for(let i=0;i<40;i++){ c.fillStyle = "rgba(0,0,0," + (r()*.35) + ")"; c.beginPath(); c.arc(r()*w, h*.3 + r()*h*.7, 4 + r()*16, 0, Math.PI*2); c.fill(); }
+    });
+    g.add(mesh(new BoxGeometry(1.5, .04, 1.0), [std("mapEdge"), std("mapEdge"), new MeshStandardMaterial({map:groundTex, roughness:.95}), std("mapEdge"), std("mapEdge"), std("mapEdge")], 0, .02, 0));
+    const ruin = new Group(); ruin.position.set(.42, .04, -.25); g.add(ruin);
+    const bm = new MeshStandardMaterial({map:brickTex("#6a4a32", "#2a2018", 23), roughness:.95});
+    ruin.add(mesh(new BoxGeometry(.4, .16, .04), bm, 0, .08, -.1)); ruin.add(mesh(new BoxGeometry(.04, .2, .24), bm, -.2, .1, 0)); ruin.add(mesh(new BoxGeometry(.16, .08, .04), bm, .08, .04, .1));
+    ruin.add(mesh(new CylinderGeometry(.03, .045, .32, 10), bm, .14, .16, -.06));
+    const fire = glowSprite(0xff6a2a, .5, .7); fire.position.set(0, .1, 0); ruin.add(fire);
+    const smoke = smokeEmitter(ruin, new Vector3(0, .12, 0), {n:7, size:.06, speed:.15, drift:-.2, rise:.7, color:0x3a3632, opacity:.6});
+    const tank = new Group(); tank.position.set(-.12, .04, .1); tank.rotation.y = .35; g.add(tank);
+    const olive = std("olive", {color:0x4b5132, roughness:.7, metalness:.2});
+    const dark = std("trackDark", {color:0x1e1e1a, roughness:.8, metalness:.3});
+    tank.add(mesh(new BoxGeometry(.5, .1, .26), olive, 0, .1, 0));
+    const glacis = mesh(new BoxGeometry(.12, .02, .26), olive, .28, .12, 0); glacis.rotation.z = -.6; tank.add(glacis);
+    tank.add(mesh(new BoxGeometry(.38, .06, .22), olive, -.03, .17, 0));
+    [-1, 1].forEach(s => {
+      tank.add(mesh(new BoxGeometry(.6, .09, .06), dark, 0, .055, s*.16));
+      for(let i=0;i<5;i++){ const w = mesh(new CylinderGeometry(.04, .04, .065, 12), olive, -.22 + i*.11, .05, s*.16); w.rotation.x = Math.PI/2; tank.add(w); }
+    });
+    const turret = new Group(); turret.position.set(-.02, .2, 0); tank.add(turret);
+    turret.add(mesh(new CylinderGeometry(.1, .11, .08, 16), olive, 0, .04, 0));
+    turret.add(mesh(new CylinderGeometry(.03, .03, .03, 10), olive, -.03, .095, .03));
+    const barrel = mesh(new CylinderGeometry(.014, .016, .34, 10), dark, .22, .045, 0); barrel.rotation.z = Math.PI/2; turret.add(barrel);
+    return {group:g, height:.7, viewDist:2.1, focusY:.18, update(t){ turret.rotation.y = Math.sin(t*.4)*.5; smoke(t); fire.material.opacity = .5 + Math.random()*.3; }};
+  }
+  function modelPress(pal){
+    const g = new Group();
+    const iron = std("pressIron", {color:0x2a2c2e, roughness:.5, metalness:.7});
+    const roller = std("roller", {color:0x6a6a6a, roughness:.3, metalness:.8});
+    const nt = noteTex("#7a8a5a", "CENTRAL BANK OF CHINA", "1000", 5);
+    const noteMat = new MeshStandardMaterial({map:nt, roughness:.8, side:DoubleSide});
+    g.add(mesh(new BoxGeometry(1.0, .08, .55), iron, 0, .04, 0));
+    [-.36, .36].forEach(x => g.add(mesh(new BoxGeometry(.05, .5, .45), iron, x, .33, -.05)));
+    const rollers = [[.42, -.05, .07], [.3, -.12, .06], [.3, .03, .06]].map(([y, z, r]) => { const m = mesh(new CylinderGeometry(r, r, .7, 20), roller, 0, y, z); m.rotation.z = Math.PI/2; g.add(m); return m; });
+    const feed = mesh(new BoxGeometry(.6, .02, .3), iron, 0, .5, -.28); feed.rotation.x = .5; g.add(feed);
+    const tray = mesh(new BoxGeometry(.5, .02, .3), iron, 0, .1, .22); g.add(tray);
+    const stack = new Mesh(new BoxGeometry(.4, 1, .22), [std("noteEdge", {color:0xc8c8b0}), std("noteEdge"), noteMat, std("noteEdge"), std("noteEdge"), std("noteEdge")]);
+    stack.position.set(0, .11, .22); stack.castShadow = true; g.add(stack);
+    const sheets = [0, 1, 2].map(() => { const m = new Mesh(new PlaneGeometry(.36, .18), noteMat); g.add(m); return m; });
+    return {group:g, height:.7, viewDist:2.0, focusY:.3, update(t){
+      rollers.forEach((r, i) => r.rotation.x = (i ? -1 : 1)*t*3);
+      const fill = (t % 10)/10; stack.scale.y = .01 + fill*.22; stack.position.y = .11 + stack.scale.y/2;
+      sheets.forEach((s, i) => { const k = (t*.5 + i/3) % 1; s.position.set(Math.sin(k*5 + i)*.05, .32 - k*.18 + Math.sin(k*Math.PI)*.12, -.05 + k*.28); s.rotation.set(-Math.PI/2 + Math.sin(k*4)*.4, k*.6, 0); });
+    }};
+  }
+  function modelCoins(pal){
+    const g = new Group();
+    const gold = std("coinGold", {color:0xd4a83a, metalness:.9, roughness:.25});
+    const nt = noteTex("#c9a86a", "GOLD YUAN · 1948", "50", 8);
+    const note = mesh(new PlaneGeometry(.66, .33), new MeshStandardMaterial({map:nt, roughness:.8, side:DoubleSide}), 0, .34, -.22, false); note.rotation.x = -.25; g.add(note);
+    g.add(mesh(new BoxGeometry(.7, .03, .06), std("darkWood"), 0, .17, -.26));
+    g.add(mesh(new BoxGeometry(.05, .18, .05), std("darkWood"), -.3, .09, -.27)); g.add(mesh(new BoxGeometry(.05, .18, .05), std("darkWood"), .3, .09, -.27));
+    const r = rnd(77); const N = 16;
+    const coins = Array.from({length:N}, (_, i) => {
+      const m = mesh(new CylinderGeometry(.055, .055, .014, 22), gold); g.add(m);
+      const a = r()*Math.PI*2, d = .1 + r()*.3;
+      return {m, home:new Vector3(.05, .008 + i*.0145, .12), lie:new Vector3(.05 + Math.cos(a)*d, .008 + (r() < .3 ? .014 : 0), .12 + Math.sin(a)*d*.6), rx:(r() - .5)*.6, ry:r()*3};
+    });
+    const tmp = new Vector3();
+    return {group:g, height:.6, viewDist:1.8, focusY:.15, update(t){
+      const c = t % 9;
+      coins.forEach((cn, i) => {
+        let k;
+        if(c < 3.2) k = 0; else if(c < 4.6) k = Math.min(1, Math.max(0, (c - 3.2 - (N - i)*.04)/.7)); else if(c < 7.2) k = 1; else k = 1 - Math.min(1, (c - 7.2)/1.4);
+        const e = k*k*(3 - 2*k);
+        tmp.lerpVectors(cn.home, cn.lie, e); tmp.y += Math.sin(e*Math.PI)*.06*(i/N);
+        cn.m.position.copy(tmp); cn.m.rotation.set(cn.rx*e + (c < 3.2 ? Math.sin(t*6 + i)*.01*(c/3.2) : 0), cn.ry*e, 0);
+      });
+    }};
+  }
+  function modelWheelbarrow(pal){
+    const g = new Group();
+    const wood = std("barrowWood", {color:0x5a3e24, roughness:.85});
+    const metal = std("barrowMetal", {color:0x4a4f4a, roughness:.5, metalness:.6});
+    const tray = new Group(); tray.position.set(0, .3, 0); tray.rotation.z = -.08; g.add(tray);
+    tray.add(mesh(new BoxGeometry(.52, .03, .38), metal, 0, 0, 0));
+    tray.add(mesh(new BoxGeometry(.52, .16, .02), metal, 0, .08, .19)); tray.add(mesh(new BoxGeometry(.52, .16, .02), metal, 0, .08, -.19));
+    tray.add(mesh(new BoxGeometry(.02, .16, .38), metal, -.26, .08, 0));
+    const front = mesh(new BoxGeometry(.02, .18, .38), metal, .29, .08, 0); front.rotation.z = -.4; tray.add(front);
+    const wheel = new Group(); wheel.position.set(.4, .1, 0); g.add(wheel);
+    wheel.add(mesh(new TorusGeometry(.085, .022, 10, 24), std("tyre", {color:0x1a1a1a, roughness:.9})));
+    const hub = mesh(new CylinderGeometry(.025, .025, .06, 10), metal); hub.rotation.x = Math.PI/2; wheel.add(hub);
+    [-1, 1].forEach(s => {
+      const h = mesh(new BoxGeometry(.9, .03, .03), wood, -.1, .3, s*.17); h.rotation.z = .12; g.add(h);
+      g.add(mesh(new BoxGeometry(.03, .26, .03), wood, -.2, .13, s*.15));
+    });
+    const nt = noteTex("#6a7a8a", "CENTRAL BANK OF CHINA", "10000", 11);
+    const brick = [std("noteEdge"), std("noteEdge"), new MeshStandardMaterial({map:nt, roughness:.8}), std("noteEdge"), std("noteEdge"), std("noteEdge")];
+    const r = rnd(5);
+    for(let i=0;i<16;i++){ const b = mesh(new BoxGeometry(.13, .05, .07), brick, -.18 + (i % 4)*.12 + (r() - .5)*.03, .05 + Math.floor(i/4)*.05, -.1 + (Math.floor(i/2) % 2)*.17 + (r() - .5)*.03); b.rotation.y = (r() - .5)*.4; tray.add(b); }
+    const band = std("band", {color:0xa82a1e});
+    const bag = mesh(new SphereGeometry(.11, 14, 10), std("burlap", {color:0xb89a6a, roughness:1}), .62, .12, .28); bag.scale.set(1, 1.15, .9); g.add(bag);
+    g.add(mesh(new ConeGeometry(.04, .06, 10), std("burlap"), .62, .27, .28));
+    g.add(mesh(new CylinderGeometry(.045, .045, .01, 10), band, .62, .245, .28));
+    g.add(mesh(new ConeGeometry(.07, .03, 14), std("rice", {color:0xf2eee0, roughness:.9}), .5, .015, .38));
+    return {group:g, height:.6, viewDist:2.0, focusY:.28};
+  }
+
+  /* =====================================================================
+     3D MODELS — Room IV
+     ===================================================================== */
+  function modelWheatField(pal){
+    const g = new Group();
+    g.add(mesh(new BoxGeometry(1.5, .05, 1.0), std("soil", {color:0x3a2a1a, roughness:1}), 0, .025, 0));
+    const plotCols = [0x5a4428, 0x6a5030, 0x4e3a22, 0x624a2c];
+    const plots = [[-.36, -.24], [.36, -.24], [-.36, .24], [.36, .24]];
+    plots.forEach(([x, z], i) => g.add(mesh(new BoxGeometry(.66, .02, .42), std("plot" + i, {color:plotCols[i], roughness:1}), x, .06, z)));
+    const stake = std("stake", {color:0xd8c8a0, roughness:.8}), red = std("flag");
+    [[-.01, -.47], [-.01, .47], [-.72, 0], [.72, 0], [0, 0]].forEach(([x, z]) => { g.add(mesh(new CylinderGeometry(.006, .006, .16, 6), stake, x, .13, z)); const f = mesh(new PlaneGeometry(.05, .03), red, x + .025, .19, z, false); g.add(f); });
+    const N = 420;
+    const stalks = new THREE.InstancedMesh(new CylinderGeometry(.0025, .003, .16, 4), std("stalk", {color:0xb89a40, roughness:.9}), N);
+    const heads = new THREE.InstancedMesh(new SphereGeometry(.009, 6, 4), std("wheatHead", {color:pal.accent, roughness:.6, metalness:.1}), N);
+    const m4 = new THREE.Matrix4(), q = new Quaternion(), sc = new Vector3(), pos = new Vector3(), e = new Euler();
+    const r = rnd(12);
+    for(let i=0;i<N;i++){
+      const [px, pz] = plots[i % 4];
+      const x = px + (r() - .5)*.6, z = pz + (r() - .5)*.36, hh = .7 + r()*.5;
+      e.set((r() - .5)*.2, 0, (r() - .5)*.2); q.setFromEuler(e);
+      pos.set(x, .07 + .08*hh, z); sc.set(1, hh, 1); m4.compose(pos, q, sc); stalks.setMatrixAt(i, m4);
+      pos.set(x + e.z*-.16*hh, .07 + .16*hh + .012, z + e.x*.16*hh); sc.set(1, 2.6, 1); m4.compose(pos, q, sc); heads.setMatrixAt(i, m4);
+    }
+    g.add(stalks); g.add(heads);
+    [[-.62, .4], [.6, -.42]].forEach(([x, z]) => { const hse = new Group(); hse.position.set(x, .05, z); g.add(hse); hse.add(mesh(new BoxGeometry(.12, .07, .08), std("mud"), 0, .035, 0)); const rf = prism(.15, .06, .1, std("roofTile", {color:0x5a2a20, roughness:.8})); rf.position.y = .07; hse.add(rf); });
+    const sheaf = new Group(); sheaf.position.set(0, .07, 0); g.add(sheaf);
+    for(let i=0;i<16;i++){ const a = i/16*Math.PI*2; const s = mesh(new CylinderGeometry(.004, .004, .28, 4), std("stalk"), Math.cos(a)*.015, .14, Math.sin(a)*.015); s.rotation.set(Math.sin(a)*.18, 0, -Math.cos(a)*.18); sheaf.add(s); }
+    sheaf.add(mesh(new CylinderGeometry(.03, .03, .02, 10), red, 0, .1, 0));
+    return {group:g, height:.5, viewDist:2.0, focusY:.1, update(t){ heads.rotation.z = Math.sin(t*.8)*.004; }};
+  }
+  function modelFurnace(pal){
+    const g = new Group();
+    g.add(mesh(new BoxGeometry(1.0, .04, .8), std("soil"), 0, .02, 0));
+    const bm = new MeshStandardMaterial({map:brickTex("#7a3a24", "#2a1810", 31), roughness:.95}); bm.map.repeat.set(3, 2);
+    g.add(mesh(new CylinderGeometry(.18, .28, .62, 18, 1, true), bm, 0, .35, -.05));
+    g.add(mesh(new CylinderGeometry(.2, .2, .04, 18, 1, true), std("iron"), 0, .67, -.05));
+    const mouthMat = new MeshStandardMaterial({color:0xff7a2a, emissive:0xff5a10, emissiveIntensity:2, roughness:1});
+    const mouth = mesh(new BoxGeometry(.13, .1, .06), mouthMat, 0, .12, .19, false); g.add(mouth);
+    const inner = mesh(new CircleGeometryCompat(.17), mouthMat, 0, .6, -.05, false); inner.rotation.x = -Math.PI/2; g.add(inner);
+    const glow = glowSprite(0xff6a20, .9, .8); glow.position.set(0, .14, .25); g.add(glow);
+    const topGlow = glowSprite(0xff8a3a, .6, .6); topGlow.position.set(0, .7, -.05); g.add(topGlow);
+    const N = 50, sp = new Float32Array(N*3), seeds = Float32Array.from({length:N}, (_, i) => i/N);
+    const sgeo = new BufferGeometry(); sgeo.setAttribute("position", new Float32BufferAttribute(sp, 3));
+    const sparks = new Points(sgeo, new PointsMaterial({color:0xffb050, size:.02, map:glowTex, transparent:true, depthWrite:false, blending:AdditiveBlending})); sparks.frustumCulled = false; g.add(sparks);
+    const tool = std("toolIron", {color:0x3a3a3a, roughness:.6, metalness:.7});
+    [[.32, .05, .2, .5], [.36, .06, .1, -.4], [.28, .08, .28, 1.2]].forEach(([x, y, z, r]) => { const h = mesh(new BoxGeometry(.14, .02, .06), tool, x, y, z); h.rotation.y = r; g.add(h); const s = mesh(new CylinderGeometry(.008, .008, .3, 6), std("mast"), x - .08, y + .02, z + .05); s.rotation.set(Math.PI/2, 0, r); g.add(s); });
+    const pig = std("pigIron", {color:0x2a2622, roughness:.9, metalness:.4});
+    [[-.32, .2], [-.38, .1], [-.28, .3], [-.34, .26]].forEach(([x, z], i) => { const p = mesh(new THREE.DodecahedronGeometry(.045 + i*.005), pig, x, .06, z); p.scale.y = .6; g.add(p); });
+    const smoke = smokeEmitter(g, new Vector3(0, .72, -.05), {n:6, size:.06, speed:.2, drift:-.25, rise:.6, color:0x4a4440});
+    return {group:g, height:.8, viewDist:2.0, focusY:.35, update(t){
+      const f = .8 + Math.random()*.4; mouthMat.emissiveIntensity = 1.6*f; glow.material.opacity = .6*f; topGlow.material.opacity = .45*f;
+      const a = sgeo.attributes.position.array;
+      for(let i=0;i<N;i++){ const k = (t*.35 + seeds[i]) % 1; a[i*3] = Math.sin(seeds[i]*40 + k*3)*.12*k; a[i*3+1] = .66 + k*.7; a[i*3+2] = -.05 + Math.cos(seeds[i]*30)*.1*k; }
+      sgeo.attributes.position.needsUpdate = true; smoke(t);
+    }};
+  }
+  function CircleGeometryCompat(r){ return new THREE.CircleGeometry(r, 20); }
+  function modelCompound(pal){
+    const g = new Group();
+    g.add(mesh(new BoxGeometry(1.4, .04, .95), std("compoundGround", {color:0x5a5650, roughness:.95}), 0, .02, 0));
+    const wallM = std("compoundWall", {color:0x8a8478, roughness:.9});
+    [[0, -.42, 1.3, .02], [-.64, 0, .02, .84], [.64, 0, .02, .84], [-.4, .42, .5, .02], [.4, .42, .5, .02]].forEach(([x, z, w, d]) => g.add(mesh(new BoxGeometry(w, .07, d), wallM, x, .075, z)));
+    const gate = new Group(); gate.position.set(0, .04, .42); g.add(gate);
+    gate.add(mesh(new BoxGeometry(.03, .16, .03), wallM, -.13, .08, 0)); gate.add(mesh(new BoxGeometry(.03, .16, .03), wallM, .13, .08, 0));
+    gate.add(mesh(new BoxGeometry(.32, .04, .04), std("flag"), 0, .17, 0));
+    const starS = new Shape(); for(let i=0;i<10;i++){ const a = -Math.PI/2 + i*Math.PI/5, rr = i % 2 ? .012 : .03; if(i) starS.lineTo(Math.cos(a)*rr, -Math.sin(a)*rr); else starS.moveTo(Math.cos(a)*rr, -Math.sin(a)*rr); } starS.closePath();
+    gate.add(mesh(new ExtrudeGeometry(starS, {depth:.006, bevelEnabled:false}), std("gold"), 0, .22, .015));
+    const blocks = new THREE.InstancedMesh(new BoxGeometry(.24, .13, .1), std("blockGrey", {color:0x9a948a, roughness:.85}), 12);
+    const m4 = new THREE.Matrix4(); let k = 0;
+    for(let i=0;i<4;i++) for(let j=0;j<3;j++){ m4.makeTranslation(-.45 + i*.3, .105, -.3 + j*.2); blocks.setMatrixAt(k++, m4); }
+    blocks.castShadow = blocks.receiveShadow = true; g.add(blocks);
+    g.add(mesh(new BoxGeometry(.4, .1, .14), std("canteen", {color:0x7a6a5a, roughness:.85}), .38, .09, .28));
+    const tw = new Group(); tw.position.set(-.5, .04, .3); g.add(tw);
+    [[-.03, -.03], [.03, -.03], [-.03, .03], [.03, .03]].forEach(([x, z]) => tw.add(mesh(new CylinderGeometry(.004, .004, .18, 5), std("iron"), x, .09, z)));
+    tw.add(mesh(new CylinderGeometry(.05, .05, .07, 14), std("iron"), 0, .21, 0));
+    const pole = new Group(); pole.position.set(.05, .04, .3); g.add(pole);
+    pole.add(mesh(new CylinderGeometry(.005, .005, .3, 6), std("mast"), 0, .15, 0));
+    const horn = mesh(new ConeGeometry(.025, .05, 10, 1, true), std("iron"), .02, .29, 0); horn.rotation.z = Math.PI/2; pole.add(horn);
+    const ct = canvasTex(128, 64, (c, w, h) => { c.fillStyle = "#d8cfa8"; c.fillRect(0, 0, w, h); c.strokeStyle = "#a83a2a"; c.lineWidth = 3; c.strokeRect(4, 4, w - 8, h - 8); c.fillStyle = "#a83a2a"; c.font = F.mono(13, 600); c.textAlign = "center"; c.fillText("GRAIN · 5 jin", w/2, h/2 + 5); });
+    const cm = new MeshStandardMaterial({map:ct, roughness:.9});
+    for(let i=0;i<6;i++){ const c = mesh(new BoxGeometry(.14, .004, .07), [std("noteEdge"), std("noteEdge"), cm, std("noteEdge"), std("noteEdge"), std("noteEdge")], .55 + (i % 2)*.01, .046 + i*.005, .4 - .05); c.rotation.y = i*.15; g.add(c); }
+    return {group:g, height:.5, viewDist:2.0, focusY:.12};
+  }
+  function modelMeltedPot(pal){
+    const g = new Group();
+    const pts = [[0, 0], [.12, .005], [.22, .03], [.29, .09], [.32, .17], [.325, .2], [.31, .2]].map(([x, y]) => new THREE.Vector2(x, y));
+    const geo = new THREE.LatheGeometry(pts, 40);
+    const p = geo.attributes.position;
+    for(let i=0;i<p.count;i++){
+      const x = p.getX(i), y = p.getY(i);
+      const f = Math.max(0, x + .08)/.4;
+      p.setY(i, y - f*f*.16*(y/.2 + .2)); p.setX(i, x + f*f*.05*(y/.2));
+    }
+    geo.computeVertexNormals();
+    const iron = new MeshStandardMaterial({color:0x2a2826, roughness:.45, metalness:.8, side:DoubleSide});
+    const pot = mesh(geo, iron, 0, .2, 0); g.add(pot);
+    const hot = new MeshStandardMaterial({color:0x5a2a14, emissive:0xff4a10, emissiveIntensity:.8, roughness:.5, metalness:.5});
+    [[.31, .02, .12], [.33, -.06, .1], [.3, .1, .08], [.28, -.13, .07]].forEach(([x, z, l]) => { const d = mesh(new ConeGeometry(.018, l, 8), hot, x, .12, z); d.rotation.x = Math.PI; g.add(d); });
+    const puddle = mesh(new CylinderGeometry(.2, .22, .015, 28), hot, .3, .008, 0); puddle.scale.set(1.3, 1, .9); g.add(puddle);
+    const glow = glowSprite(0xff5a20, .8, .5); glow.position.set(.3, .05, 0); g.add(glow);
+    const brick = std("brickBlock", {color:0x6a3a2a, roughness:.95});
+    [[-.18, .1], [.06, -.2], [.02, .2]].forEach(([x, z]) => g.add(mesh(new BoxGeometry(.1, .2, .1), brick, x, .1, z)));
+    return {group:g, height:.6, viewDist:1.8, focusY:.2, update(t){ hot.emissiveIntensity = .6 + Math.sin(t*2)*.25; glow.material.opacity = .35 + Math.sin(t*2)*.15; }};
+  }
+
+  /* =====================================================================
+     3D MODELS — Room V
+     ===================================================================== */
+  function makeCat(color, eyeColor, rough){
+    const c = new Group();
+    const m = std("cat" + color, {color, roughness:rough, metalness:.15});
+    const body = mesh(new SphereGeometry(.1, 20, 16), m, 0, .11, 0); body.scale.set(.9, 1.15, 1); c.add(body);
+    const head = new Group(); head.position.set(0, .27, .02); c.add(head);
+    head.add(mesh(new SphereGeometry(.068, 18, 14), m));
+    [-1, 1].forEach(s => { const ear = mesh(new ConeGeometry(.025, .05, 8), m, s*.04, .06, 0); ear.rotation.z = -s*.3; head.add(ear); head.add(mesh(new SphereGeometry(.011, 8, 6), new MeshBasicMaterial({color:eyeColor}), s*.026, .01, .058, false)); });
+    const tailCurve = new THREE.CatmullRomCurve3([new Vector3(0, .04, -.08), new Vector3(.08, .02, -.1), new Vector3(.13, .05, -.02), new Vector3(.12, .12, .04)]);
+    const tail = mesh(new THREE.TubeGeometry(tailCurve, 20, .014, 8), m); c.add(tail);
+    return {c, head, tail};
+  }
+  function modelCats(pal){
+    const g = new Group();
+    g.add(mesh(new CylinderGeometry(.6, .64, .04, 40), std("catBase", {color:0x0e2a30, roughness:.4}), 0, .02, 0));
+    const black = makeCat(0x141414, 0xffd23a, .3), white = makeCat(0xeeeae2, 0x3ac0ff, .35);
+    black.c.scale.setScalar(1.7); white.c.scale.setScalar(1.7);
+    black.c.position.set(-.3, .04, -.1); black.c.rotation.y = .5; white.c.position.set(.3, .04, -.1); white.c.rotation.y = -.5; white.tail.scale.x = -1;
+    g.add(black.c); g.add(white.c);
+    const mouse = new Group(); mouse.scale.setScalar(1.6); g.add(mouse);
+    const grey = std("mouse", {color:0x8a8a8a, roughness:.7});
+    const mb = mesh(new SphereGeometry(.03, 12, 10), grey, 0, .065, 0); mb.scale.set(1, .8, 1.5); mouse.add(mb);
+    mouse.add(mesh(new SphereGeometry(.012, 8, 6), grey, -.016, .09, .03)); mouse.add(mesh(new SphereGeometry(.012, 8, 6), grey, .016, .09, .03));
+    const mt = mesh(new CylinderGeometry(.003, .002, .08, 4), grey, 0, .06, -.07); mt.rotation.x = Math.PI/2.4; mouse.add(mt);
+    return {group:g, height:.7, viewDist:1.9, focusY:.3, update(t){
+      const x = Math.sin(t*.7)*.2; mouse.position.set(x, 0, .3); mouse.rotation.y = Math.cos(t*.7) > 0 ? Math.PI/2 : -Math.PI/2;
+      [black, white].forEach((c, i) => { const wp = c.c.position; c.head.rotation.y = Math.atan2(x - wp.x, .4) - c.c.rotation.y; c.tail.rotation.y = Math.sin(t*2 + i)*.15; });
+    }};
+  }
+  function modelShenzhen(pal){
+    const g = new Group();
+    const W = 1.36, D = .86;
+    const tex = canvasTex(1024, 648, (c, w, h) => {
+      c.fillStyle = "#3a4a3a"; c.fillRect(0, 0, w, h);
+      c.fillStyle = "#14404a"; c.beginPath(); c.moveTo(0, h*.62); c.bezierCurveTo(w*.3, h*.55, w*.5, h*.72, w, h*.6); c.lineTo(w, h*.78); c.bezierCurveTo(w*.6, h*.85, w*.3, h*.74, 0, h*.8); c.closePath(); c.fill();
+      c.fillStyle = "#2a3a2c"; c.fillRect(0, h*.8, w, h*.2);
+      c.fillStyle = "rgba(240,230,210,.75)"; c.font = F.mono(22, 600); c.fillText("SHENZHEN", 30, 44); c.fillText("HONG KONG", 30, h - 24);
+      c.strokeStyle = "rgba(255,255,255,.08)"; c.lineWidth = 2; for(let x=60;x<w;x+=70){ c.beginPath(); c.moveTo(x, 70); c.lineTo(x, h*.58); c.stroke(); } for(let y=80;y<h*.58;y+=60){ c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
+    });
+    g.add(mesh(new BoxGeometry(W, .04, D), [std("mapEdge"), std("mapEdge"), new MeshStandardMaterial({map:tex, roughness:.6}), std("mapEdge"), std("mapEdge"), std("mapEdge")], 0, .02, 0));
+    const winTex = canvasTex(64, 256, (c, w, h) => { c.fillStyle = "#0e2a30"; c.fillRect(0, 0, w, h); const r = rnd(4); for(let y=6;y<h;y+=10) for(let x=4;x<w;x+=10){ c.fillStyle = r() < .55 ? "#ffe2a0" : "#1a3a40"; c.fillRect(x, y, 6, 6); } });
+    const towerMat = new MeshStandardMaterial({color:0x9fc9cf, map:winTex, emissive:0xffffff, emissiveMap:winTex, emissiveIntensity:.5, roughness:.25, metalness:.4});
+    const r = rnd(21); const towers = [];
+    for(let i=0;i<24;i++){
+      const x = -.58 + (i % 8)*.15 + (r() - .5)*.03, z = -.36 + Math.floor(i/8)*.13 + (r() - .5)*.03;
+      const hh = .12 + r()*.4 + (i === 11 ? .25 : 0);
+      const geo = new BoxGeometry(.075, 1, .075); geo.translate(0, .5, 0);
+      const t = mesh(geo, towerMat, x, .04, z); t.scale.y = .001; g.add(t);
+      towers.push({t, hh, delay:r()*1.5 + Math.floor(i/8)*.3});
+      if(i === 11){ const sp = mesh(new CylinderGeometry(.004, .01, .12, 6), std("silver"), 0, 1.06, 0); sp.scale.y = 1/hh; t.add(sp); }
+    }
+    const hut = std("hut", {color:0x8a7a5a, roughness:.9});
+    [[-.5, .12], [-.38, .14], [-.25, .11], [.1, .13]].forEach(([x, z]) => { g.add(mesh(new BoxGeometry(.05, .03, .04), hut, x, .055, z)); const rr = prism(.06, .025, .045, std("thatch")); rr.position.set(x, .07, z); g.add(rr); });
+    const boats = [[-.2, .23], [.3, .2]].map(([x, z]) => { const b = new Group(); b.position.set(x, .045, z); g.add(b); b.add(mesh(new BoxGeometry(.09, .015, .025), std("mast"), 0, 0, 0)); b.add(mesh(new PlaneGeometry(.035, .05), std("sail"), 0, .03, 0, false)); return b; });
+    let start = -1;
+    return {group:g, height:.8, viewDist:1.9, focusY:.18, onEnter(){ start = -1; }, update(t){
+      if(start < 0) start = t;
+      towers.forEach(o => { const k = Math.min(1, Math.max(0, (t - start - .5 - o.delay)/1.4)); const e = 1 - Math.pow(1 - k, 3); o.t.scale.y = Math.max(.001, o.hh*e); });
+      boats.forEach((b, i) => { b.position.y = .045 + Math.sin(t*1.5 + i)*.004; b.rotation.y = Math.sin(t*.5 + i)*.2; });
+    }};
+  }
+  function modelContract(pal){
+    const g = new Group();
+    const paper = canvasTex(512, 380, (c, w, h) => {
+      c.fillStyle = "#efe6cf"; c.fillRect(0, 0, w, h);
+      c.fillStyle = "#3a2a1a"; c.font = F.head(30); c.textAlign = "center"; c.fillText("Xiaogang Village · 1978", w/2, 48);
+      c.font = F.mono(15); c.fillStyle = "rgba(58,42,26,.7)"; c.fillText("18 households · one secret agreement", w/2, 76);
+      c.strokeStyle = "rgba(58,42,26,.35)"; c.lineWidth = 2; for(let y=100;y<190;y+=16){ c.beginPath(); c.moveTo(40, y); c.lineTo(w - 40 - (y % 3)*20, y); c.stroke(); }
+      const r = rnd(18);
+      for(let i=0;i<18;i++){ const x = 60 + (i % 6)*78, y = 230 + Math.floor(i/6)*48; c.fillStyle = "rgba(180,20,20,.85)"; c.beginPath(); c.ellipse(x + (r() - .5)*8, y, 11, 15, (r() - .5)*.6, 0, Math.PI*2); c.fill(); c.strokeStyle = "rgba(255,255,255,.35)"; c.lineWidth = 1; for(let k=4;k<12;k+=3){ c.beginPath(); c.ellipse(x, y, k*.7, k, 0, 0, Math.PI*2); c.stroke(); } }
+    });
+    const board = new Group(); board.position.set(-.18, 0, 0); g.add(board);
+    board.add(mesh(new BoxGeometry(.6, .03, .44), std("darkWood"), 0, .2, 0)).children.at(-1).rotation.x = .5;
+    board.add(mesh(new BoxGeometry(.04, .2, .04), std("darkWood"), 0, .1, .05));
+    const sheet = mesh(new PlaneGeometry(.54, .4), new MeshStandardMaterial({map:paper, roughness:.95}), 0, .2, 0, false); sheet.rotation.x = -Math.PI/2 + .5; sheet.position.y = .215; sheet.position.z = .008; board.add(sheet);
+    const burlap = std("burlap", {color:0xb89a6a, roughness:1});
+    [[.3, -.1, 1], [.45, .12, .9], [.22, .2, .85]].forEach(([x, z, s]) => { const b = mesh(new SphereGeometry(.1, 14, 10), burlap, x, .11*s, z); b.scale.set(s, 1.2*s, s); g.add(b); g.add(mesh(new ConeGeometry(.035*s, .06*s, 8), burlap, x, .25*s, z)); });
+    g.add(mesh(new ConeGeometry(.12, .07, 18), std("grain", {color:pal.accent, roughness:.8}), .5, .035, -.22));
+    const grains = new THREE.InstancedMesh(new SphereGeometry(.007, 5, 4), std("grain"), 70);
+    const m4 = new THREE.Matrix4(), r = rnd(9);
+    for(let i=0;i<70;i++){ const a = r()*Math.PI*2, d = .12 + r()*.12; m4.makeTranslation(.5 + Math.cos(a)*d, .006, -.22 + Math.sin(a)*d); grains.setMatrixAt(i, m4); }
+    g.add(grains);
+    return {group:g, height:.5, viewDist:1.8, focusY:.18};
+  }
+  function modelSuitcase(pal){
+    const g = new Group();
+    const corr = (col) => canvasTex(128, 64, (c, w, h) => { c.fillStyle = col; c.fillRect(0, 0, w, h); for(let x=0;x<w;x+=8){ c.fillStyle = "rgba(0,0,0,.25)"; c.fillRect(x, 0, 3, h); c.fillStyle = "rgba(255,255,255,.08)"; c.fillRect(x + 4, 0, 2, h); } c.fillStyle = "rgba(255,255,255,.5)"; c.fillRect(6, 6, 30, 5); });
+    const cols = ["#8a2a1e", "#1e4a7a", "#2a6a4a", "#c86a1e", "#5a5a5a"];
+    const cm = cols.map(c => new MeshStandardMaterial({map:corr(c), roughness:.7, metalness:.3}));
+    [[-.27, .1, 0, 0], [.27, .1, 0, 1], [0, .1, .26, 2], [-.13, .3, .05, 3], [.17, .3, .1, 4]].forEach(([x, y, z, i]) => g.add(mesh(new BoxGeometry(.5, .2, .21), cm[i], x, y, z)));
+    const sc = new Group(); sc.position.set(.02, .4, .06); sc.rotation.y = .3; g.add(sc);
+    const leather = std("leather", {color:0x6a4426, roughness:.55, metalness:.05});
+    sc.add(mesh(new BoxGeometry(.34, .22, .1), leather, 0, .11, 0));
+    [-.11, .11].forEach(x => sc.add(mesh(new BoxGeometry(.025, .225, .105), std("strap", {color:0x3a2414, roughness:.7}), x, .11, 0)));
+    const handle = mesh(new TorusGeometry(.04, .008, 8, 16, Math.PI), std("strap"), 0, .22, 0); sc.add(handle);
+    const rope = mesh(new TorusGeometry(.13, .006, 6, 32), std("rope", {color:0xc8b080, roughness:1}), 0, .11, 0); rope.rotation.y = Math.PI/2; rope.scale.set(1, 1.05, .45); sc.add(rope);
+    const tag = textPanel(.09, .05, (c, w, h) => { c.fillStyle = "#e8dcc0"; c.fillRect(0, 0, w, h); c.fillStyle = "#3a2414"; c.font = F.mono(6, 600); c.fillText("→ SHENZHEN", 3, 7); }, {ppm:220, res:4});
+    tag.position.set(.12, .2, .056); tag.rotation.z = -.3; sc.add(tag);
+    return {group:g, height:.7, viewDist:2.0, focusY:.32};
+  }
+
+  /* =====================================================================
+     ROOM II — INDUSTRIALISATION (brick mill hall, steel trusses, sawtooth glazing, gears)
+     ===================================================================== */
+  async function buildRoom2(L){
+    const pal = PALETTES[1], g = roomGroups[L.index];
+    const wallMat = new MeshStandardMaterial({map:texFor(brickTex("#6a4426", "#2a2014", 41), 1, 1, 1), roughness:.9}); wallMat.map.repeat.set(1/1.4, 1/1.4);
+    buildShell(L, {floorTex:concreteTex("#4a4236", 3), floorTile:5, floorRough:.8, wallMat, ceilMat:std("r2ceil", {color:0x15130e, roughness:1})});
+    const steel = std("steel", {color:0x3a3d3a, roughness:.55, metalness:.6});
+    const trim = std("r2trim", {color:0xc99a4b, metalness:.7, roughness:.35});
+    doorFrame(g, L.zMax, -1, steel); doorFrame(g, L.zMin, 1, steel);
+    const colX = L.w/2 - 1.4, colH = L.h - 1.6;
+    for(let zr = 3; zr < L.d - 1; zr += 5){
+      const z = L.zMax - zr;
+      [-1, 1].forEach(s => {
+        const x = s*colX;
+        g.add(mesh(new BoxGeometry(.05, colH, .32), steel, x, colH/2, z));
+        g.add(mesh(new BoxGeometry(.3, colH, .05), steel, x, colH/2, z - .15)); g.add(mesh(new BoxGeometry(.3, colH, .05), steel, x, colH/2, z + .15));
+        g.add(mesh(new BoxGeometry(.5, .06, .5), steel, x, .03, z));
+        obstacles.push({x, z, r:.35});
+      });
+      // roof truss
+      const yb = L.h - 1.6, yt = L.h - .25;
+      g.add(mesh(new BoxGeometry(L.w, .12, .14), steel, 0, yb, z, false));
+      g.add(mesh(new BoxGeometry(L.w, .12, .14), steel, 0, yt, z, false));
+      const n = 10, dx = L.w/n;
+      for(let i=0;i<n;i++){ const x0 = -L.w/2 + i*dx; const len = Math.hypot(dx, yt - yb); const d = mesh(new BoxGeometry(len, .08, .1), steel, x0 + dx/2, (yb + yt)/2, z, false); d.rotation.z = (i % 2 ? 1 : -1)*Math.atan2(yt - yb, dx); g.add(d); g.add(mesh(new BoxGeometry(.08, yt - yb, .1), steel, x0, (yb + yt)/2, z, false)); }
+      // sawtooth glazing between trusses
+      if(zr + 2.5 < L.d - 1){
+        const gl = mesh(new PlaneGeometry(L.w - .4, 2.6), std("r2sky", {color:0xd8e4dc, emissive:0xe8f0e0, emissiveIntensity:.55, roughness:.5}), 0, L.h - .9, z - 2.5, false);
+        gl.rotation.x = Math.PI/2 + .6; g.add(gl);
+      }
+    }
+    // tall factory windows
+    const wt = windowGridTex("#c8d8d0", "#22251f");
+    const winMat = new MeshStandardMaterial({map:wt, emissive:0xdfe8d8, emissiveMap:wt, emissiveIntensity:.45, roughness:.6});
+    for(let zr = 5.5; zr < L.d - 2; zr += 5) [-1, 1].forEach(s => { const w = mesh(new PlaneGeometry(2.4, 4.4), winMat, s*(L.w/2 - .03), 4.0, L.zMax - zr, false); w.rotation.y = -s*Math.PI/2; g.add(w); });
+    // industrial pendant lamps
+    const shade = std("lampShade", {color:0x1f3a2e, roughness:.5, metalness:.4, side:DoubleSide});
+    const bulb = new MeshStandardMaterial({color:0xfff2c8, emissive:0xffd88a, emissiveIntensity:2.2});
+    for(let zr = 5.5; zr < L.d - 2; zr += 5) [-4, 4].forEach(x => {
+      const z = L.zMax - zr, y = L.h - 3.2;
+      g.add(mesh(new CylinderGeometry(.01, .01, 1.6, 4), std("cord", {color:0x111111}), x, y + 1.0, z, false));
+      g.add(mesh(new ConeGeometry(.42, .3, 18, 1, true), shade, x, y + .1, z, false));
+      g.add(mesh(new SphereGeometry(.09, 12, 8), bulb, x, y, z, false));
+      const gs = glowSprite(0xffd890, 1.4, .45); gs.position.set(x, y - .05, z); g.add(gs);
+    });
+    // rails set into the floor
+    const railM = {rail:std("railFloor", {color:0x8a8f94, metalness:.8, roughness:.35}), sleeper:std("sleeperFloor", {color:0x2a1e14, roughness:.9})};
+    const segs = [[L.zMax - .6, L.zMax - L.d/2 + 1.8], [L.zMax - L.d/2 - 1.8, L.zMin + .6]];
+    segs.forEach(([z0, z1]) => {
+      const len = z0 - z1, cz = (z0 + z1)/2;
+      [-.72, .72].forEach(x => g.add(mesh(new BoxGeometry(.07, .04, len), railM.rail, x, .02, cz, false)));
+      for(let z = z0 - .3; z > z1; z -= .65) g.add(mesh(new BoxGeometry(2.0, .02, .22), railM.sleeper, 0, .01, z, false));
+    });
+    // gear wall
+    const gw = new Group(); gw.userData.dynamic = true; gw.position.set(-L.w/2 + .2, 0, L.zMax - 3.4); gw.rotation.y = Math.PI/2; g.add(gw);
+    const gm = std("gearIron", {color:0x4a4a44, roughness:.45, metalness:.75});
+    const g1 = mesh(gearGeo(1.15, 18, .16, .2), gm, 0, 4.6, 0);
+    const g2 = mesh(gearGeo(.62, 10, .16, .12), trim, 1.86, 3.55, 0);
+    const g3 = mesh(gearGeo(.4, 7, .16, .08), gm, 2.6, 4.75, 0);
+    [g1, g2, g3].forEach(m => { gw.add(m); gw.add(mesh(new CylinderGeometry(.12, .12, .3, 12), steel, m.position.x, m.position.y, 0)).children.at(-1).rotation.x = Math.PI/2; });
+    updaters.push((t) => { if(currentRoom !== L.index) return; g1.rotation.z = t*.25; g2.rotation.z = -t*.25*18/10 + .15; g3.rotation.z = t*.25*18/7 + .3; });
+    roomTitlePanel(L, pal, 5.3, 6.4, 2.0, "#16120a");
+    entryStand(L, pal, ROOMS[1].entrySign, trim, "#16120a");
+    await standardExhibits(L, pal, [modelFactory, modelRailway, modelFracturedMap, modelTwoTrains], {plinth:std("r2plinth", {color:0x2a2c2a, roughness:.5, metalness:.5}), trim});
+    infoBoards(L, pal, {w:Math.min(6, L.w/2 - 3), h:2.9, y:2.1, gap:1.9, bg:"#16120a", frame:steel});
+    addDust(L, 0xfff0d0, 300);
+  }
+
+  /* =====================================================================
+     ROOM III — WAR ECONOMY (low concrete bunker, sandbags, flickering bulbs)
+     ===================================================================== */
+  async function buildRoom3(L){
+    const pal = PALETTES[2], g = roomGroups[L.index];
+    const wallMat = new MeshStandardMaterial({map:texFor(concreteTex("#4a4642", 13, true), 1, 1, 1), roughness:.95}); wallMat.map.repeat.set(1/3, 1/3);
+    buildShell(L, {floorTex:concreteTex("#2e2a28", 19), floorTile:4, floorRough:.7, wallMat, ceilMat:new MeshStandardMaterial({map:texFor(concreteTex("#3a3634", 7, true), L.w, L.d, 4), roughness:1})});
+    const conc = std("r3beam", {color:0x4a4642, roughness:.95});
+    const rust = std("rust", {color:0x5a3a2a, roughness:.6, metalness:.5});
+    doorFrame(g, L.zMax, -1, rust); doorFrame(g, L.zMin, 1, rust);
+    for(let zr = 2; zr < L.d - 1; zr += 3) g.add(mesh(new BoxGeometry(L.w, .4, .5), conc, 0, L.h - .2, L.zMax - zr, false));
+    [-3.2, -2.8, 3.0].forEach((x, i) => { const p = mesh(new CylinderGeometry(i === 2 ? .14 : .07, i === 2 ? .14 : .07, L.d, 10), rust, x, L.h - .7 - i*.05, L.cz, false); p.rotation.x = Math.PI/2; g.add(p); });
+    // sandbag walls (instanced)
+    const bagGeo = new SphereGeometry(.3, 10, 6); bagGeo.scale(1, .32, .6);
+    const per = Math.floor((L.d - 2)/.62), count = per*3*2;
+    const bags = new THREE.InstancedMesh(bagGeo, std("sandbag", {color:0x8a7a58, roughness:1}), count);
+    const m4 = new THREE.Matrix4(), q = new Quaternion(), r = rnd(3); let k = 0;
+    [-1, 1].forEach(s => { for(let row=0; row<3; row++) for(let i=0;i<per;i++){ q.setFromEuler(new Euler(0, Math.PI/2 + (r() - .5)*.2, (r() - .5)*.1)); m4.compose(new Vector3(s*(L.w/2 - .4), .1 + row*.19, L.zMax - 1 - i*.62 - (row % 2)*.31), q, new Vector3(1, 1, 1)); bags.setMatrixAt(k++, m4); } });
+    bags.count = k; bags.receiveShadow = true; bags.castShadow = true; g.add(bags);
+    // crates
+    const crateTex = canvasTex(128, 128, (c, w, h) => { c.fillStyle = "#5a4430"; c.fillRect(0, 0, w, h); c.strokeStyle = "#2a1e14"; c.lineWidth = 8; c.strokeRect(4, 4, w - 8, h - 8); c.beginPath(); c.moveTo(0, 0); c.lineTo(w, h); c.stroke(); });
+    const crate = new MeshStandardMaterial({map:crateTex, roughness:.9});
+    [[-L.w/2 + 1.6, 1.2, .9], [-L.w/2 + 1.5, 2.1, .7], [L.w/2 - 1.6, L.d - 1.4, .9], [L.w/2 - 1.6, L.d - 2.4, .8]].forEach(([x, zr, s], i) => { const c = mesh(new BoxGeometry(s, s, s), crate, x, s/2 + (i === 1 ? .9 : 0), L.zMax - zr); c.rotation.y = i*.3; g.add(c); });
+    // hanging bulbs (flicker)
+    const bulbMat = new MeshStandardMaterial({color:0xfff0c0, emissive:0xffc070, emissiveIntensity:2});
+    const bulbs = [];
+    for(let zr = 3.5; zr < L.d - 1; zr += 4.5){
+      const z = L.zMax - zr;
+      g.add(mesh(new CylinderGeometry(.008, .008, .7, 4), std("cord"), 0, L.h - .35, z, false));
+      g.add(mesh(new SphereGeometry(.07, 10, 8), bulbMat, 0, L.h - .75, z, false));
+      const gs = glowSprite(0xffc070, 1.6, .55); gs.position.set(0, L.h - .78, z); g.add(gs); bulbs.push(gs);
+    }
+    const red = glowSprite(0xff2a1a, 1.2, .7); red.position.set(0, DOOR_H + .55, L.zMin + .15); g.add(red);
+    g.add(mesh(new SphereGeometry(.08, 10, 8), new MeshStandardMaterial({color:0xff3a2a, emissive:0xff2010, emissiveIntensity:2}), 0, DOOR_H + .55, L.zMin + .1, false));
+    updaters.push((t) => { if(currentRoom !== L.index) return; const f = Math.random() < .04 ? .25 : 1; bulbMat.emissiveIntensity = 2*f; bulbs.forEach(b => b.material.opacity = .55*f); red.material.opacity = .4 + .4*Math.max(0, Math.sin(t*3)); lightState.flicker = f; });
+    roomTitlePanel(L, pal, 4.3, 5.2, .9, "#120c0c");
+    entryStand(L, pal, ROOMS[2].entrySign, rust, "#120c0c");
+    await standardExhibits(L, pal, [modelTank, modelPress, modelCoins, modelWheelbarrow], {plinth:std("r3plinth", {color:0x3a3634, roughness:.9}), trim:rust}, {x:L.w/2 - 4});
+    infoBoards(L, pal, {w:Math.min(5.4, L.w/2 - 3.2), h:2.7, y:1.95, gap:1.8, bg:"#120c0c", frame:rust});
+    addDust(L, 0xd0c0b0, 340);
+  }
+
+  /* =====================================================================
+     ROOM IV — PLANNED ECONOMY (monumental hall, pilasters, banners, gold star)
+     ===================================================================== */
+  async function buildRoom4(L){
+    const pal = PALETTES[3], g = roomGroups[L.index];
+    const wallMat = new MeshStandardMaterial({map:texFor(plasterTex("#5a1616", 51, false), 1, 1, 1), roughness:.85}); wallMat.map.repeat.set(1/2, 1/2);
+    buildShell(L, {floorTex:tileTex("#6a5a48", "#3a1414", "#1a0a0a"), floorTile:2, floorRough:.3, wallMat, ceilMat:std("r4ceil", {color:0x2a1210, roughness:.9})});
+    const cream = std("cream", {color:0xd8ccb0, roughness:.6});
+    const gold = std("goldBright", {color:0xe8c14a, metalness:.85, roughness:.3});
+    doorFrame(g, L.zMax, -1, cream); doorFrame(g, L.zMin, 1, cream);
+    // pilasters + banners
+    const banTex = canvasTex(256, 1024, (c, w, h) => {
+      const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, "#b3201a"); gr.addColorStop(1, "#7a1210"); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+      c.fillStyle = "#e8c14a"; c.fillRect(14, 0, 8, h); c.fillRect(w - 22, 0, 8, h);
+      c.beginPath(); for(let i=0;i<10;i++){ const a = -Math.PI/2 + i*Math.PI/5, rr = i % 2 ? 26 : 64; c.lineTo(w/2 + Math.cos(a)*rr, 170 + Math.sin(a)*rr); } c.closePath(); c.fill();
+      c.strokeStyle = "#e8c14a"; c.lineWidth = 5; c.beginPath(); c.arc(w/2, 470, 78, Math.PI*.15, Math.PI*.85, true); c.stroke();
+      for(let i=0;i<7;i++){ const a = Math.PI*.15 + i*.14; c.beginPath(); c.ellipse(w/2 + Math.cos(a + Math.PI)*78, 470 - Math.sin(a + Math.PI)*78, 6, 14, a, 0, Math.PI*2); c.fill(); c.beginPath(); c.ellipse(w/2 - Math.cos(a + Math.PI)*78, 470 - Math.sin(a + Math.PI)*78, 6, 14, -a, 0, Math.PI*2); c.fill(); }
+      c.font = F.mono(40, 600); c.textAlign = "center"; c.fillText("1949", w/2, 760); c.fillText("—", w/2, 820); c.fillText("1978", w/2, 880);
+    });
+    const banMat = new MeshStandardMaterial({map:banTex, roughness:.85, side:DoubleSide, emissive:0x3a0806, emissiveIntensity:.4});
+    for(let zr = 2.5; zr < L.d - 1; zr += 5){
+      [-1, 1].forEach(s => {
+        g.add(mesh(new BoxGeometry(.6, L.h, .9), cream, s*(L.w/2 - .3), L.h/2, L.zMax - zr, false));
+        if(zr + 2.5 < L.d - 1){ const b = mesh(new PlaneGeometry(1.5, 6), banMat, s*(L.w/2 - .08), L.h - 4.2, L.zMax - zr - 2.5, false); b.rotation.y = -s*Math.PI/2; g.add(b); }
+      });
+    }
+    // coffered ceiling grid
+    for(let x = -L.w/2 + 3; x < L.w/2; x += 3) g.add(mesh(new BoxGeometry(.3, .5, L.d), cream, x, L.h - .25, L.cz, false));
+    for(let zr = 2.5; zr < L.d; zr += 5) g.add(mesh(new BoxGeometry(L.w, .5, .3), cream, 0, L.h - .25, L.zMax - zr, false));
+    const lampMat = new MeshStandardMaterial({color:0xfff4d8, emissive:0xfff0c8, emissiveIntensity:1.4});
+    for(let zr = 5; zr < L.d - 1; zr += 5) [-6, 0, 6].forEach(x => { const d = mesh(new THREE.CircleGeometry(.55, 24), lampMat, x, L.h - .52, L.zMax - zr, false); d.rotation.x = Math.PI/2; g.add(d); });
+    // gold star relief above the title
+    const st = new Shape(); for(let i=0;i<10;i++){ const a = Math.PI/2 + i*Math.PI/5, rr = i % 2 ? .55 : 1.4; if(i) st.lineTo(Math.cos(a)*rr, Math.sin(a)*rr); else st.moveTo(Math.cos(a)*rr, Math.sin(a)*rr); } st.closePath();
+    const star = mesh(new ExtrudeGeometry(st, {depth:.15, bevelEnabled:true, bevelThickness:.05, bevelSize:.05, bevelSegments:2}), gold, 0, 8.6, L.zMin + .05, false); g.add(star);
+    const sg = glowSprite(0xffd060, 4, .25); sg.position.set(0, 8.6, L.zMin + .4); g.add(sg);
+    // red carpet
+    const carpet = new Mesh(new PlaneGeometry(3, L.d - 1), new MeshStandardMaterial({color:0x8a1612, roughness:.95, polygonOffset:true, polygonOffsetFactor:-2}));
+    carpet.rotation.x = -Math.PI/2; carpet.position.set(0, .006, L.cz); carpet.receiveShadow = true; g.add(carpet);
+    [-1.5, 1.5].forEach(x => g.add(mesh(new BoxGeometry(.08, .012, L.d - 1), gold, x, .008, L.cz, false)));
+    roomTitlePanel(L, pal, 5.4, 7, 2.2, "#1a0808");
+    entryStand(L, pal, ROOMS[3].entrySign, gold, "#1a0808");
+    await standardExhibits(L, pal, [modelWheatField, modelFurnace, modelCompound, modelMeltedPot], {plinth:std("r4plinth", {color:0xcfc2a4, roughness:.55}), trim:gold}, {x:L.w/2 - 4.8});
+    infoBoards(L, pal, {w:Math.min(6.4, L.w/2 - 3.2), h:3.0, y:2.2, gap:2.0, bg:"#1a0808", frame:gold});
+    addDust(L, 0xffe0a0, 320);
+  }
+
+  /* =====================================================================
+     ROOM V — REFORM & OPENING-UP (glass, steel, LED strips, night skyline)
+     ===================================================================== */
+  async function buildRoom5(L){
+    const pal = PALETTES[4], g = roomGroups[L.index];
+    const wallMat = new MeshStandardMaterial({map:texFor(plasterTex("#0d3038", 61, true), 1, 1, 1), roughness:.6}); wallMat.map.repeat.set(1/2, 1/2);
+    buildShell(L, {floorTex:tileTex("#0e1c20", "#122428", "#2a4a50"), floorTile:2.4, floorRough:.18, wallMat, ceilMat:std("r5ceil", {color:0x061418, roughness:.8})});
+    const white = std("white", {color:0xe8eef0, roughness:.25, metalness:.1});
+    const mint = new MeshStandardMaterial({color:0x6fd6bd, emissive:0x6fd6bd, emissiveIntensity:1.6});
+    const gold = std("gold");
+    doorFrame(g, L.zMax, -1, white); doorFrame(g, L.zMin, 1, white);
+    // skyline "windows" along both side walls
+    const sky = skylineTex(5, "#0a2a3a", "#1a4a5a", "#ffe2a0");
+    [-1, 1].forEach(s => {
+      const m = new MeshBasicMaterial({map:texFor(sky, 1, 1, 1), toneMapped:false}); m.map.wrapS = RepeatWrapping; m.map.repeat.set((L.d - 4)/14*(s > 0 ? 1 : -1), 1);
+      const w = new Mesh(new PlaneGeometry(L.d - 4, 5.6), m); w.position.set(s*(L.w/2 - .04), 3.6, L.cz); w.rotation.y = -s*Math.PI/2; g.add(w);
+      for(let z = L.zMax - 2; z >= L.zMin + 2; z -= 2.4) g.add(mesh(new BoxGeometry(.08, 5.8, .08), white, s*(L.w/2 - .08), 3.6, z, false));
+      g.add(mesh(new BoxGeometry(.1, .08, L.d - 4), white, s*(L.w/2 - .08), .8, L.cz, false));
+      g.add(mesh(new BoxGeometry(.1, .08, L.d - 4), white, s*(L.w/2 - .08), 6.4, L.cz, false));
+      g.add(mesh(new BoxGeometry(.04, .04, L.d - .4), mint, s*(L.w/2 - .1), .05, L.cz, false));
+    });
+    [-6.5, -2.5, 2.5, 6.5].forEach(x => g.add(mesh(new BoxGeometry(.12, .05, L.d - 2), mint, x, L.h - .05, L.cz, false)));
+    roomTitlePanel(L, pal, 5.3, 7, 2.1, "#061418");
+    entryStand(L, pal, ROOMS[4].entrySign, white, "#061418");
+    await standardExhibits(L, pal, [modelCats, modelShenzhen, modelContract, modelSuitcase], {plinth:std("r5plinth", {color:0xdfe6e8, roughness:.22, metalness:.1}), trim:gold}, {x:L.w/2 - 4.4});
+    infoBoards(L, pal, {w:Math.min(6, L.w/2 - 3), h:2.9, y:2.1, gap:1.9, bg:"#061418", frame:white});
+    addDust(L, 0xc8fff0, 220);
+  }
+
+  /* =====================================================================
+     FINAL ROOM — THE LONG CORRIDOR (rotunda with a 3D causal timeline)
+     ===================================================================== */
+  async function buildFinal(L){
+    const pal = PALETTES[5], g = roomGroups[L.index];
+    const wallMat = new MeshStandardMaterial({map:texFor(plasterTex(pal.wall1, 71, false), 1, 1, 1), roughness:.9}); wallMat.map.repeat.set(1/2, 1/2);
+    buildShell(L, {floorTex:marbleTex(), floorTile:4, floorRough:.3, wallMat, ceilMat:std("finalCeil", {color:0x15100a}), exitOpening:null, noCeiling:true, noWalk:true});
+    const R = 13.6, H = 8.4, cx = 0, cz = L.cz;
+    walkRects.push({circle:true, cx, cz, r:R - 1.3, room:L.index});
+    walkRects.push({x0:-1.3, x1:1.3, z0:cz + R - 2.5, z1:L.zMax - .45, room:L.index});
+    const gold = std("gold");
+    doorFrame(g, L.zMax, -1, gold);
+    // panorama: one painted band per era, in front of its node
+    const nodeAng = (i) => Math.PI + 1.6 - i*.8;
+    const eraScenes = [
+      (c, w, h) => { for(let i=0;i<4;i++){ const x = 120 + i*230; c.beginPath(); c.moveTo(x - 70, h*.78); c.lineTo(x + 70, h*.78); c.lineTo(x + 50, h*.86); c.lineTo(x - 50, h*.86); c.fill(); c.fillRect(x - 3, h*.45, 6, h*.33); c.beginPath(); c.moveTo(x + 3, h*.48); c.lineTo(x + 60, h*.62); c.lineTo(x + 3, h*.66); c.fill(); } },
+      (c, w, h) => { for(let i=0;i<7;i++){ const x = 60 + i*140; c.fillRect(x, h*.6, 110, h*.3); c.fillRect(x + 80, h*.3 + (i % 3)*30, 18, h*.3); } },
+      (c, w, h) => { for(let i=0;i<9;i++){ const x = 30 + i*110; c.beginPath(); c.moveTo(x, h); c.lineTo(x + 20, h*.62 - (i % 3)*40); c.lineTo(x + 50, h*.7); c.lineTo(x + 70, h*.58 + (i % 2)*30); c.lineTo(x + 100, h); c.fill(); } },
+      (c, w, h) => { c.fillRect(0, h*.8, w, h*.2); for(let i=0;i<5;i++){ const x = 100 + i*200; c.fillRect(x, h*.3, 60, h*.5); c.beginPath(); c.moveTo(x - 20, h*.62); c.lineTo(x + 80, h*.62); c.lineTo(x + 30, h*.48); c.fill(); } },
+      (c, w, h) => { let x = 10; let i = 0; while(x < w){ const bw = 40 + (i*37 % 50), bh = h*(.3 + (i*53 % 45)/100); c.fillRect(x, h - bh, bw, bh); x += bw + 6; i++; } }
+    ];
+    for(let i=0;i<5;i++){
+      const room = ROOMS[i], p = PALETTES[i];
+      const tex = canvasTex(1024, 760, (c, w, h) => {
+        const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, p.wall2); gr.addColorStop(.7, p.wall1); gr.addColorStop(1, p.wall2); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+        c.fillStyle = hexA(p.accent, .18); eraScenes[i](c, w, h);
+        c.fillStyle = hexA(p.accent, .9); c.fillRect(0, 0, w, 6); c.fillRect(0, h - 6, w, 6);
+        c.textAlign = "center"; c.fillStyle = p.accent; c.font = F.mono(30, 600); c.fillText((room.tag + " · " + room.years).toUpperCase(), w/2, 80);
+        c.fillStyle = "rgba(240,230,210,.85)"; c.font = F.head(70); c.fillText(room.title, w/2, 160);
+      });
+      tex.wrapS = RepeatWrapping; tex.repeat.x = -1;
+      const seg = new Mesh(new CylinderGeometry(R, R, H, 24, 1, true, nodeAng(i) - .4, .8), new MeshBasicMaterial({map:tex, side:THREE.BackSide, toneMapped:false}));
+      seg.position.set(cx, H/2, cz); g.add(seg);
+    }
+    const fillTex = canvasTex(256, 256, (c, w, h) => { const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, "#15100a"); gr.addColorStop(.7, "#2e2415"); gr.addColorStop(1, "#15100a"); c.fillStyle = gr; c.fillRect(0, 0, w, h); c.fillStyle = "rgba(217,180,92,.5)"; c.fillRect(0, 0, w, 3); c.fillRect(0, h - 3, w, 3); });
+    [[.14, nodeAng(4) - .4 - .14], [nodeAng(0) + .4, Math.PI*2 - .14 - (nodeAng(0) + .4)]].forEach(([a0, len]) => {
+      const seg = new Mesh(new CylinderGeometry(R, R, H, 16, 1, true, a0, len), new MeshBasicMaterial({map:fillTex, side:THREE.BackSide, toneMapped:false}));
+      seg.position.set(cx, H/2, cz); g.add(seg);
+    });
+    const dome = new Mesh(new SphereGeometry(R, 40, 14, 0, Math.PI*2, 0, Math.PI/2), new MeshStandardMaterial({color:0x1a140c, roughness:.9, side:THREE.BackSide}));
+    dome.scale.y = .32; dome.position.set(cx, H, cz); g.add(dome);
+    const oc = new Mesh(new THREE.CircleGeometry(1.8, 32), new MeshBasicMaterial({color:0xfff0d0, toneMapped:false})); oc.rotation.x = Math.PI/2; oc.position.set(cx, H + R*.32 - .05, cz); g.add(oc);
+    // compass inlay (uses the compass icon of the classic version)
+    const cimg = await svgToImage(ICONS.compass, PALETTES[5].accent, [256, 192]);
+    const inlay = new Mesh(new THREE.CircleGeometry(2.6, 48), new MeshStandardMaterial({map:canvasTex(512, 512, (c, w, h) => { c.fillStyle = "#1c150c"; c.fillRect(0, 0, w, h); c.strokeStyle = "#d9b45c"; c.lineWidth = 6; c.beginPath(); c.arc(w/2, h/2, w/2 - 10, 0, Math.PI*2); c.stroke(); if(cimg) c.drawImage(cimg, w/2 - 200, h/2 - 150, 400, 300); }), roughness:.4, polygonOffset:true, polygonOffsetFactor:-2}));
+    inlay.rotation.x = -Math.PI/2; inlay.position.set(cx, .008, cz); inlay.receiveShadow = true; g.add(inlay);
+    // the timeline: nodes, causal links, light pulses
+    const nodeR = 8.4, pathY = .3;
+    const nodePos = (a, r = nodeR) => new Vector3(cx + Math.sin(a)*r, 0, cz + Math.cos(a)*r);
+    const minis = [modelGunboat, modelFactory, modelTank, modelFurnace, modelShenzhen];
+    const pathPts = [];
+    for(let i=0;i<5;i++){
+      const a = nodeAng(i), p = nodePos(a), pl = PALETTES[i], room = ROOMS[i];
+      const root = new Group(); root.position.copy(p); root.rotation.y = a - Math.PI; root.userData.dynamic = true; g.add(root);
+      const acc = std("nodeAcc" + i, {color:pl.accent, metalness:.8, roughness:.3, emissive:new Color(pl.accent), emissiveIntensity:.35});
+      root.add(mesh(new CylinderGeometry(.95, 1.05, .8, 32), std("nodeBody", {color:0x1a140c, roughness:.5}), 0, .4, 0));
+      root.add(mesh(new TorusGeometry(.98, .035, 8, 40), acc, 0, .8, 0)).children.at(-1).rotation.x = Math.PI/2;
+      const mini = minis[i](pl); mini.group.scale.setScalar(.82); mini.group.position.y = .82; root.add(mini.group);
+      mini.group.traverse(o => { if(o.isMesh){ o.castShadow = true; } });
+      const beam = new Mesh(new CylinderGeometry(.9, .9, 6, 24, 1, true), new MeshBasicMaterial({color:pl.accent, alphaMap:coneTex, transparent:true, opacity:.08, depthWrite:false, blending:AdditiveBlending, side:DoubleSide, toneMapped:false}));
+      beam.geometry.rotateX(Math.PI); beam.position.y = 3.8; root.add(beam);
+      const label = textPanel(2.2, .9, (c, w, h) => {
+        c.fillStyle = "rgba(21,16,11,.92)"; c.fillRect(0, 0, w, h); c.fillStyle = pl.accent; c.fillRect(0, 0, w, 5);
+        c.textAlign = "center"; c.fillStyle = pl.accent; c.font = F.mono(17, 600); c.fillText((room.tag + " · " + room.years).toUpperCase(), w/2, 52);
+        c.fillStyle = "#f0e6d2"; let fs = 40; c.font = F.head(fs); while(c.measureText(room.title).width > w - 30 && fs > 16){ fs--; c.font = F.head(fs); } c.fillText(room.title, w/2, 118);
+        c.fillStyle = "rgba(240,230,210,.55)"; c.font = F.mono(13); c.fillText(TOUCH ? "tap to open" : "click to open", w/2, 168);
+      }, {ppm:220, res:2});
+      label.position.set(0, 2.55, 0); root.add(label);
+      obstacles.push({x:p.x, z:p.z, r:1.05});
+      root.updateMatrixWorld(true);
+      const rec = addInspectable(L, {kind:"node", pal:pl, parent:root, hit:[2.2, 3.2, 2.2], hitPos:new Vector3(0, 1.6, 0), focus:new Vector3(p.x, 1.4, p.z),
+        front:new Vector3(-Math.sin(a), 0, -Math.cos(a)), viewDist:3.6, reach:5, index:i, label:room.tag + " — " + room.title, navGroup:"chain", navIndex:i*2,
+        data:{room:i}});
+      rec.model = mini; rec.root = root;
+      const ring = new Mesh(new RingGeometry(1.25, 1.34, 48), new MeshBasicMaterial({color:pl.accent, transparent:true, opacity:0, depthWrite:false, blending:AdditiveBlending, toneMapped:false}));
+      ring.rotation.x = -Math.PI/2; ring.position.set(p.x, .012, p.z); g.add(ring); rec.ring = ring;
+      updaters.push((t, dt) => { if(currentRoom !== L.index && inspectTarget !== rec) return; mini.group.rotation.y += dt*.25; if(mini.update) mini.update(t); });
+      spotPlans[L.index].length < 3 && i % 2 === 0 && spotPlans[L.index].push({pos:new Vector3(p.x*.7, L.h - .5, cz + (p.z - cz)*.7), target:new Vector3(p.x, 1.2, p.z)});
+    }
+    // end marker: today
+    const endA = nodeAng(5) + .1, endP = nodePos(endA);
+    const endRoot = new Group(); endRoot.position.copy(endP); endRoot.rotation.y = endA - Math.PI; g.add(endRoot);
+    endRoot.add(mesh(new CylinderGeometry(.5, .6, .5, 24), std("nodeBody"), 0, .25, 0));
+    const orb = mesh(new SphereGeometry(.28, 24, 16), new MeshStandardMaterial({color:0xfff0d0, emissive:0xffe0a0, emissiveIntensity:1.2}), 0, .9, 0, false); endRoot.add(orb);
+    const og = glowSprite(0xffe0a0, 2.2, .5); og.position.y = .9; endRoot.add(og);
+    const endLabel = textPanel(1.8, .6, (c, w, h) => { c.fillStyle = "rgba(21,16,11,.92)"; c.fillRect(0, 0, w, h); c.textAlign = "center"; c.fillStyle = "#d9b45c"; c.font = F.mono(16, 600); c.fillText("TODAY", w/2, 44); c.fillStyle = "#f0e6d2"; c.font = F.headI(30); c.fillText("Still being written", w/2, 96); }, {ppm:220});
+    endLabel.position.y = 1.75; endRoot.add(endLabel);
+    obstacles.push({x:endP.x, z:endP.z, r:.7});
+    for(let i=0;i<=5;i++){ const a = i < 5 ? nodeAng(i) : endA; const p = nodePos(a); pathPts.push(new Vector3(p.x, pathY, p.z)); if(i < 5){ const am = a - .4; const pm = nodePos(am, nodeR + .25); pathPts.push(new Vector3(pm.x, pathY, pm.z)); } }
+    const curve = new THREE.CatmullRomCurve3(pathPts);
+    const pathMat = new MeshStandardMaterial({color:0xd9b45c, emissive:0xd9b45c, emissiveIntensity:.9, roughness:.3});
+    g.add(mesh(new THREE.TubeGeometry(curve, 240, .05, 8, false), pathMat, 0, 0, 0, false));
+    // causal links: arrows + panels
+    for(let i=0;i<5;i++){
+      const a0 = nodeAng(i), a1 = i < 4 ? nodeAng(i + 1) : endA, am = (a0 + a1)/2;
+      const pm = nodePos(am, nodeR + .25);
+      const tangent = nodePos(a1).sub(nodePos(a0)).normalize();
+      const arrow = mesh(new ConeGeometry(.16, .4, 16), pathMat, pm.x, pathY, pm.z, false);
+      arrow.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), tangent); g.add(arrow);
+      const pl = PALETTES[i];
+      const panelP = nodePos(am, nodeR - .3);
+      const target = i < 4 ? ROOMS[i + 1].tag : "Today";
+      const lp = textPanel(2.4, 1.15, (c, w, h) => {
+        c.fillStyle = "rgba(21,16,11,.9)"; c.fillRect(0, 0, w, h); c.strokeStyle = hexA(pl.accent, .8); c.lineWidth = 2; c.strokeRect(4, 4, w - 8, h - 8);
+        c.fillStyle = pl.accent; c.font = F.mono(15, 600); c.fillText((ROOMS[i].tag + " → " + target).toUpperCase(), 20, 34);
+        c.fillStyle = "#f0e6d2"; let fs = 25; c.font = F.headI(fs); let ln = wrapText(c, ROUTE_WHY[i], w - 40); while(ln.length > 2 && fs > 14){ fs--; c.font = F.headI(fs); ln = wrapText(c, ROUTE_WHY[i], w - 40); }
+        ln.forEach((t, k) => c.fillText(t, 20, 70 + k*fs*1.2));
+        let y0 = 70 + ln.length*fs*1.2 + 8, bs = 16; c.font = F.body(bs); c.fillStyle = "rgba(240,230,210,.78)";
+        let bl = wrapText(c, EXTRA_LINKS[i], w - 40); while(y0 + bl.length*bs*1.3 > h - 34 && bs > 10){ bs--; c.font = F.body(bs); bl = wrapText(c, EXTRA_LINKS[i], w - 40); }
+        bl.forEach((t, k) => c.fillText(t, 20, y0 + k*bs*1.3));
+        c.fillStyle = "rgba(240,230,210,.6)"; c.font = F.mono(12); c.fillText(TOUCH ? "tap for the full link" : "click for the full link", 20, h - 18);
+      }, {ppm:220, res:2});
+      lp.position.set(panelP.x, 1.75, panelP.z); lp.rotation.y = am - Math.PI; lp.userData.dynamic = true; g.add(lp);
+      g.add(mesh(new CylinderGeometry(.025, .025, 1.2, 8), gold, panelP.x, .6, panelP.z));
+      addInspectable(L, {kind:"link", pal:pl, hit:[2.4, 2.4, .4], hitPos:new Vector3(panelP.x, 1.2, panelP.z), hitRotY:am - Math.PI, focus:new Vector3(panelP.x, 1.75, panelP.z),
+        front:new Vector3(-Math.sin(am), 0, -Math.cos(am)), viewDist:3.2, reach:4.5, index:i, label:ROOMS[i].tag + " → " + target, navGroup:"chain", navIndex:i*2 + 1, data:{link:i}});
+      obstacles.push({x:panelP.x, z:panelP.z, r:.3});
+    }
+    // light pulses running along the chain of causes
+    const pulses = [0, 1, 2, 3].map(() => { const s = glowSprite(0xffe6a8, .7, .9); g.add(s); return s; });
+    updaters.push((t) => { if(currentRoom !== L.index) return; pulses.forEach((s, i) => { const u = (t*.05 + i/4) % 1; s.position.copy(curve.getPointAt(u)); s.position.y += .05; }); orb.scale.setScalar(1 + Math.sin(t*2)*.06); });
+    // curator's note at the centre
+    const lect = new Group(); lect.position.set(cx, 0, cz + .4); g.add(lect);
+    lect.add(mesh(new CylinderGeometry(.35, .5, 1.0, 20), std("nodeBody"), 0, .5, 0));
+    const note = textPanel(1.5, 1.0, (c, w, h) => {
+      c.fillStyle = "#1c150c"; c.fillRect(0, 0, w, h); c.strokeStyle = "#d9b45c"; c.lineWidth = 3; c.strokeRect(6, 6, w - 12, h - 12);
+      c.fillStyle = "#d9b45c"; c.font = F.mono(15, 600); c.fillText("FINAL ROOM · FIVE ROOMS, ONE ARGUMENT", 22, 38);
+      c.fillStyle = "#f0e6d2"; let fs = 21; c.font = F.headI(fs); let ln = wrapText(c, FINAL_ROOM.curator, w - 44);
+      while(ln.length*fs*1.3 > h - 70 && fs > 12){ fs--; c.font = F.headI(fs); ln = wrapText(c, FINAL_ROOM.curator, w - 44); }
+      ln.forEach((t, k) => c.fillText(t, 22, 70 + k*fs*1.3));
+    }, {ppm:220, res:2});
+    note.position.set(0, 1.18, .12); note.rotation.x = -.55; lect.add(note);
+    lect.add(mesh(new BoxGeometry(1.56, .04, 1.06), gold, 0, 1.16, .1)).children.at(-1).rotation.x = -.55;
+    obstacles.push({x:cx, z:cz + .4, r:.8});
+    addInspectable(L, {kind:"curator", pal, hit:[1.6, 1.6, 1.4], hitPos:new Vector3(cx, .8, cz + .5), focus:new Vector3(cx, 1.15, cz + .5), front:new Vector3(0, 0, 1), viewDist:2.4, reach:4, label:"Curator's note", navGroup:"curator", navIndex:0, data:{}});
+    // restart plaque
+    const rs = new Group(); rs.position.set(cx + 2.6, 0, cz + 3.2); rs.rotation.y = -.4; g.add(rs);
+    rs.add(mesh(new BoxGeometry(.08, 1.1, .08), gold, 0, .55, 0));
+    const rp = textPanel(1.2, .5, (c, w, h) => { c.fillStyle = "#d9b45c"; c.fillRect(0, 0, w, h); c.fillStyle = "#1a1509"; c.font = F.mono(24, 600); c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(FINAL_ROOM.restart.toUpperCase(), w/2, h/2); }, {ppm:220});
+    rp.position.set(0, 1.25, .05); rs.add(rp);
+    obstacles.push({x:cx + 2.6, z:cz + 3.2, r:.5});
+    addInspectable(L, {kind:"action", pal, hit:[1.3, 1.6, .6], hitPos:new Vector3(cx + 2.6, 1.0, cz + 3.2), focus:new Vector3(cx + 2.6, 1.25, cz + 3.2), front:new Vector3(0, 0, 1), reach:4, label:FINAL_ROOM.restart, navGroup:"action", navIndex:0, data:{}, action:() => jumpToRoom(1)});
+    spotPlans[L.index].push({pos:new Vector3(cx, L.h - .5, cz + 3), target:new Vector3(cx, 1.1, cz + .4)});
+    addDust(L, 0xffe6b8, 260);
   }
 
   /* =====================================================================
@@ -1593,18 +2769,31 @@ async function createMuseum(THREE){
   LAYOUT.forEach((L) => { const g = new Group(); g.name = L.key; scene.add(g); roomGroups[L.index] = g; spotPlans[L.index] = []; });
   setLoad(.36, "Building the entrance hall…"); await nextFrame();
   await buildFoyer(LAYOUT[0]);
-  setLoad(.5, "Building Room I — Forced Opening…"); await nextFrame();
+  setLoad(.4, "Building Room I — Forced Opening…"); await nextFrame();
   await buildRoom1(LAYOUT[1]);
-  setLoad(.66, "Hanging the doors…"); await nextFrame();
+  setLoad(.46, "Building Room II — Industrialisation…"); await nextFrame();
+  await buildRoom2(LAYOUT[2]);
+  setLoad(.52, "Building Room III — War Economy…"); await nextFrame();
+  await buildRoom3(LAYOUT[3]);
+  setLoad(.58, "Building Room IV — Planned Economy…"); await nextFrame();
+  await buildRoom4(LAYOUT[4]);
+  setLoad(.63, "Building Room V — Reform & Opening-Up…"); await nextFrame();
+  await buildRoom5(LAYOUT[5]);
+  setLoad(.68, "Building the Long Corridor…"); await nextFrame();
+  await buildFinal(LAYOUT[6]);
+  setLoad(.71, "Hanging the doors…"); await nextFrame();
   const doorStyles = [
     {floorMat:std("passFloor0", {color:0x2a241c, roughness:.6, emissive:0x2a2118, emissiveIntensity:.5}), wallMat:std("passWall0", {color:0x2b2116, roughness:.9, emissive:0x3a2c1c, emissiveIntensity:.6}), leafMat:std("leaf0", {color:0x3a2414, roughness:.5, emissive:0x2a1a0e, emissiveIntensity:.5})},
-    {floorMat:std("passFloor1", {color:0x2a120b, roughness:.6, emissive:0x2a100a, emissiveIntensity:.5}), wallMat:std("passWall1", {color:0x3a1515, roughness:.9, emissive:0x4a1a14, emissiveIntensity:.6}), leafMat:std("leaf1", {color:0x6e1612, roughness:.4, emissive:0x4a0e0a, emissiveIntensity:.5})}
+    {floorMat:std("passFloor1", {color:0x2a120b, roughness:.6, emissive:0x2a100a, emissiveIntensity:.5}), wallMat:std("passWall1", {color:0x3a1515, roughness:.9, emissive:0x4a1a14, emissiveIntensity:.6}), leafMat:std("leaf1", {color:0x6e1612, roughness:.4, emissive:0x4a0e0a, emissiveIntensity:.5})},
+    {floorMat:std("passFloor2", {color:0x2a2620, roughness:.7, emissive:0x1e1a14, emissiveIntensity:.5}), wallMat:std("passWall2", {color:0x3a3028, roughness:.9, emissive:0x2a2218, emissiveIntensity:.6}), leafMat:std("leaf2", {color:0x3a3d3a, roughness:.5, metalness:.6, emissive:0x1a1a18, emissiveIntensity:.5})},
+    {floorMat:std("passFloor3", {color:0x2a2624, roughness:.8, emissive:0x161210, emissiveIntensity:.5}), wallMat:std("passWall3", {color:0x3a3634, roughness:.95, emissive:0x1e1a18, emissiveIntensity:.6}), leafMat:std("leaf3", {color:0x4a3a2a, roughness:.6, metalness:.5, emissive:0x1a120c, emissiveIntensity:.5})},
+    {floorMat:std("passFloor4", {color:0x3a1414, roughness:.5, emissive:0x2a0c0a, emissiveIntensity:.5}), wallMat:std("passWall4", {color:0x5a1616, roughness:.85, emissive:0x3a0e0c, emissiveIntensity:.6}), leafMat:std("leaf4", {color:0xb3201a, roughness:.4, emissive:0x4a0a08, emissiveIntensity:.5})},
+    {floorMat:std("passFloor5", {color:0x0e1c20, roughness:.3, emissive:0x081418, emissiveIntensity:.5}), wallMat:std("passWall5", {color:0x0d3038, roughness:.6, emissive:0x0a2a30, emissiveIntensity:.6}), leafMat:std("leaf5", {color:0xcfe0e4, roughness:.15, metalness:.3, emissive:0x204a50, emissiveIntensity:.4})}
   ];
   for(let a=0; a<LAYOUT.length-1; a++){
     if(!LAYOUT[a].built) continue;
     const rec = buildPassage(a, doorStyles[Math.min(a, doorStyles.length-1)]);
     rec.locked = !LAYOUT[a+1].built;
-    if(rec.locked) buildLockedNotice(a);
   }
 
   /* ---------------- light pool (re-aimed at the active room) ---------------- */
@@ -1615,7 +2804,7 @@ async function createMuseum(THREE){
   const SPOTS = 4;
   const spots = [];
   for(let i=0;i<SPOTS;i++){ const s = new THREE.SpotLight(0xffffff, 0, 0, .42, .6, 0); scene.add(s); scene.add(s.target); spots.push(s); }
-  const lightState = {fade:1, mood:MOOD.foyer};
+  const lightState = {fade:1, mood:MOOD.foyer, flicker:1};
   function aimLights(L){
     const m = MOOD[L.key]; lightState.mood = m;
     hemi.color.set(m.sky); hemi.groundColor.set(m.ground);
@@ -1633,7 +2822,8 @@ async function createMuseum(THREE){
   function applyLightIntensity(){
     const m = lightState.mood, f = lightState.fade;
     hemi.intensity = m.hemi*(.55 + .45*f);
-    key.intensity = m.keyI*f;
+    const fl = (m === MOOD.r3 && lightState.flicker !== undefined) ? (.7 + .3*lightState.flicker) : 1;
+    key.intensity = m.keyI*f*fl;
     spots.forEach(s => { s.intensity = (s.userData.base || 0)*f; });
   }
 
@@ -1662,6 +2852,18 @@ async function createMuseum(THREE){
       o.connect(g); o2.connect(g2); g2.connect(g); g.connect(dest);
       o.start(t); o2.start(t); o.stop(t + dur + .1); o2.stop(t + dur + .1);
     }
+    function hit(dest, t, freq, q, dur, vol, buf){
+      const src = ctx.createBufferSource(); src.buffer = buf || white;
+      const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = freq; f.Q.value = q;
+      const g = ctx.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .005); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(dest); src.start(t, Math.random()*1.5); src.stop(t + dur + .05);
+    }
+    function thud(dest, t, f0, dur, vol){
+      const o = ctx.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0*.35, t + dur);
+      const g = ctx.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + .05);
+    }
+    function bell(dest, t, f, dur, vol){ [1, 2.76, 5.4].forEach((m, i) => { const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = f*m; const g = ctx.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol/(i + 1), t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + dur/(i + 1)); o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + .1); }); }
     function echo(dest, time, fb, wet){ const d = ctx.createDelay(2); d.delayTime.value = time; const f = ctx.createGain(); f.gain.value = fb; const w = ctx.createGain(); w.gain.value = wet; d.connect(f); f.connect(d); d.connect(w); w.connect(dest); const input = ctx.createGain(); input.connect(d); input.connect(dest); return input; }
     const RECIPES = {
       foyer(bus){
@@ -1690,6 +2892,65 @@ async function createMuseum(THREE){
         };
       }
     };
+    Object.assign(RECIPES, {
+      r2(bus){ // mill hall: hum, steam, rhythmic machinery
+        const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 600; lp.connect(bus);
+        osc("sawtooth", 55, .02, lp); osc("sine", 110, .03, lp, 4); osc("sine", 165, .012, lp, -6);
+        const hum = noise(brown, bus, "bandpass", 140, 1.5, .09); lfo(.3, .03, hum.g.gain);
+        const steam = noise(white, bus, "highpass", 3500, .5, .0); lfo(.07, .012, steam.g.gain);
+        const out = echo(bus, .21, .25, .35);
+        let next = 0, beat = 0; const pattern = [1, 0, .6, 0, 1, .5, .6, 0];
+        return (t) => {
+          if(t > next){
+            const v = pattern[beat % 8];
+            if(v) hit(out, t + .02, beat % 4 === 0 ? 900 : 2200, 6, .18, .22*v);
+            if(beat % 8 === 0) thud(bus, t + .02, 90, .3, .12);
+            beat++; next = t + .36;
+          }
+        };
+      },
+      r3(bus){ // bunker: rumble, wind, ticking, distant impacts
+        const rumble = noise(brown, bus, "lowpass", 110, .6, .2); lfo(.05, .09, rumble.g.gain);
+        const wind = noise(white, bus, "bandpass", 650, .6, .025); lfo(.09, .02, wind.g.gain); lfo(.04, 260, wind.f.frequency);
+        osc("sine", 49, .04, bus);
+        let tick = 0, boom = 0;
+        return (t) => {
+          if(t > tick){ hit(bus, t + .02, 3800, 12, .03, .05); tick = t + 1; }
+          if(t > boom){ thud(bus, t + .05, 70 + Math.random()*30, 1.6, .28); hit(bus, t + .06, 300, 1, .9, .05, brown); boom = t + 5 + Math.random()*7; }
+        };
+      },
+      r4(bus){ // monumental hall: brass-like chord pad, wind, bell
+        const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 900; lp.connect(bus); lfo(.05, 300, lp.frequency);
+        [130.8, 155.6, 196, 261.6].forEach((f, i) => { const v = osc("sawtooth", f, .009, lp, (i - 1.5)*5); lfo(.06 + i*.02, .004, v.g.gain); });
+        const wind = noise(white, bus, "bandpass", 420, .5, .02); lfo(.07, .015, wind.g.gain);
+        const out = echo(bus, .6, .45, .5);
+        let next = 2;
+        return (t) => { if(t > next){ bell(out, t + .05, [392, 311.1, 261.6][Math.floor(Math.random()*3)], 5, .07); next = t + 7 + Math.random()*6; } };
+      },
+      r5(bus){ // modern city: bright pad, arpeggio, city hum
+        const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400; lp.connect(bus);
+        [220, 277.2, 329.6, 440].forEach((f, i) => { const v = osc("sine", f, .013, lp, i*3); lfo(.1 + i*.03, .006, v.g.gain); });
+        noise(brown, bus, "lowpass", 300, .5, .06);
+        const out = echo(bus, .32, .4, .45);
+        const notes = [440, 554.4, 659.3, 880, 739.9, 659.3, 554.4, 493.9];
+        let next = 0, step = 0, phrase = 0;
+        return (t) => {
+          if(t > next){
+            if(phrase < 8){ const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = notes[step % notes.length]; const g = ctx.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + .5); o.connect(g); g.connect(out); o.start(t); o.stop(t + .55); step++; phrase++; next = t + .22; }
+            else { phrase = 0; step += 3; next = t + 3 + Math.random()*3; }
+          }
+        };
+      },
+      final(bus){ // rotunda: warm chord, slow chimes
+        const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1100; lp.connect(bus);
+        [146.8, 220, 293.7, 370].forEach((f, i) => { const v = osc("sine", f, .016, lp, i*2); lfo(.05 + i*.02, .008, v.g.gain); });
+        noise(brown, bus, "lowpass", 250, .5, .05);
+        const out = echo(bus, .55, .45, .55);
+        const scale = [587.3, 659.3, 740, 880, 987.8, 1174.7];
+        let next = 1;
+        return (t) => { if(t > next){ pluck(out, scale[Math.floor(Math.random()*scale.length)], t + .05, 3.2, .05); if(Math.random() < .4) pluck(out, scale[Math.floor(Math.random()*3)]/2, t + .4, 3.6, .04); next = t + 2.5 + Math.random()*3.5; } };
+      }
+    });
     function ensureBus(key){
       if(buses[key] || !RECIPES[key]) return buses[key];
       const g = ctx.createGain(); g.gain.value = 0; g.connect(master);
@@ -1759,7 +3020,10 @@ async function createMuseum(THREE){
 
   function isFree(x, z){
     let inside = false;
-    for(const r of walkRects){ if(x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1){ inside = true; break; } }
+    for(const r of walkRects){
+      if(r.circle){ const dx = x - r.cx, dz = z - r.cz; if(dx*dx + dz*dz <= r.r*r.r){ inside = true; break; } }
+      else if(x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1){ inside = true; break; }
+    }
     if(!inside) return false;
     for(const o of obstacles){
       if(o.r !== undefined){ const dx = x - o.x, dz = z - o.z; if(dx*dx + dz*dz < (o.r + .3)*(o.r + .3)) return false; }
@@ -1801,7 +3065,7 @@ async function createMuseum(THREE){
     fogTarget.color.set(m.fog); fogTarget.density = m.fogD;
     if(opts.instant){ scene.fog.color.copy(fogTarget.color); scene.fog.density = fogTarget.density; scene.background.copy(fogTarget.color); }
     audio.setRoom(L.key);
-    roomGroups.forEach((g, k) => { g.visible = Math.abs(k - i) <= 1; });
+    updateRoomVisibility();
     charts.forEach(c => { if(c.room === i){ if(prev !== i || opts.restartCharts){ c.reset(); c.start(elapsed); } } else c.reset(); });
     exhibits.forEach(e => { if(e.room === i && e.model && e.model.onEnter && prev !== i) e.model.onEnter(); });
     updateHUD();
@@ -1813,6 +3077,15 @@ async function createMuseum(THREE){
         sign.classList.add("show"); clearTimeout(signTimer); signTimer = setTimeout(() => sign.classList.remove("show"), 7000);
       }
     }
+  }
+  function updateRoomVisibility(){
+    const z = camera.position.z, i = currentRoom, L = LAYOUT[i];
+    roomGroups.forEach((g, k) => {
+      if(k === i){ g.visible = true; return; }
+      if(k === i - 1){ g.visible = z > L.zMax - 10; return; }
+      if(k === i + 1){ g.visible = z < L.zMin + 10; return; }
+      g.visible = false;
+    });
   }
   function showTitleCard(L){
     const meta = metaOf(L);
@@ -1993,7 +3266,7 @@ async function createMuseum(THREE){
   const orbit = {theta:0, phi:.3, r:2.2, min:1, max:6, idle:0, target:new Vector3()};
   const walkPose = {pos:new Vector3(), yaw:0, pitch:0};
   const viewOffset = {k:0, target:0};
-  function roomExhibits(room){ return exhibits.filter(e => e.room === room && e.kind === "exhibit"); }
+  function navList(rec){ return exhibits.filter(e => e.navGroup === rec.navGroup).sort((a, b) => a.navIndex - b.navIndex); }
   function orbitPose(){
     const c = Math.cos(orbit.phi);
     return new Vector3(orbit.target.x + Math.sin(orbit.theta)*c*orbit.r, orbit.target.y + Math.sin(orbit.phi)*orbit.r, orbit.target.z + Math.cos(orbit.theta)*c*orbit.r);
@@ -2001,13 +3274,17 @@ async function createMuseum(THREE){
   function quatLookingAt(from, to){ dummyCam.position.copy(from); dummyCam.lookAt(to); return dummyCam.quaternion.clone(); }
   function openInspect(rec){
     if(mode !== "walk" && mode !== "inspect") return;
+    if(rec.kind === "action"){ if(rec.action) rec.action(); return; }
     if(mode === "walk"){ walkPose.pos.copy(pos); walkPose.yaw = yaw; walkPose.pitch = pitch; }
     if(locked && document.exitPointerLock) document.exitPointerLock();
     inspectTarget = rec;
     setHighlight(null);
     orbit.target.copy(rec.focus);
-    orbit.theta = Math.atan2(rec.front.x, rec.front.z) + (rec.kind === "chart" ? 0 : -.35);
-    orbit.phi = rec.kind === "chart" ? .12 : .32;
+    const flat = rec.kind === "chart" || rec.kind === "info" || rec.kind === "link" || rec.kind === "curator";
+    orbit.base = Math.atan2(rec.front.x, rec.front.z);
+    orbit.limit = (rec.kind === "info" || rec.kind === "link") ? .55 : rec.kind === "curator" ? .8 : 0;
+    orbit.theta = orbit.base + (flat ? 0 : -.35);
+    orbit.phi = rec.kind === "chart" ? .12 : rec.kind === "curator" ? .5 : flat ? .05 : .32;
     orbit.r = rec.viewDist; orbit.min = rec.viewDist*.5; orbit.max = rec.viewDist*2.2; orbit.idle = 0;
     mode = "tween";
     document.body.classList.add("inspecting");
@@ -2019,8 +3296,9 @@ async function createMuseum(THREE){
   }
   function stepInspect(dir){
     if(!inspectTarget) return;
-    const list = roomExhibits(inspectTarget.room);
-    let i = list.findIndex(e => e.index === inspectTarget.index);
+    const list = navList(inspectTarget);
+    if(list.length < 2) return;
+    let i = list.indexOf(inspectTarget);
     i = (i + dir + list.length) % list.length;
     mode = "inspect";
     openInspect(list[i]);
@@ -2037,29 +3315,80 @@ async function createMuseum(THREE){
     });
     setTimeout(() => { if(mode !== "inspect") document.body.classList.remove("inspecting"); }, 500);
   }
+  function factsHtml(list){ return '<h4>Key facts</h4><ul>' + list.map(f => '<li>' + f + '</li>').join("") + '</ul>'; }
   function fillPanel(rec){
-    const ex = rec.data, L = LAYOUT[rec.room], room = ROOMS[L.content], pal = rec.pal;
+    const L = LAYOUT[rec.room], pal = rec.pal;
     const panel = $("panel");
     panel.style.setProperty("--modal-accent", pal.accent);
     panel.style.setProperty("--modal-accent2", pal.accent2);
-    $("panelIcon").innerHTML = ex.icon ? ICONS[ex.icon] : (ex.type === "placard" ? ICONS.scroll : "");
-    $("modalEyebrow").textContent = room.tag.toUpperCase() + " · EXHIBIT " + (rec.index+1) + " OF " + room.exhibits.length + (rec.kind === "chart" ? " · DATA INSTALLATION" : "");
-    $("modalTitle").textContent = ex.title;
-    $("modalBody").innerHTML = ex.body;
-    $("modalWhy").innerHTML = "<strong>Why this matters:</strong> " + ex.why;
+    let icon = "", eyebrow = "", title = "", body = "", why = "", quote = "", chart = null, facts = null, action = null;
+    if(rec.kind === "exhibit" || rec.kind === "chart"){
+      const ex = rec.data, room = ROOMS[L.content];
+      icon = ex.icon ? ICONS[ex.icon] : (ex.type === "placard" ? ICONS.scroll : "");
+      eyebrow = room.tag.toUpperCase() + " · EXHIBIT " + (rec.index+1) + " OF " + room.exhibits.length + (rec.kind === "chart" ? " · DATA INSTALLATION" : "");
+      title = ex.title; body = ex.body; why = "<strong>Why this matters:</strong> " + ex.why; quote = ex.quote || ""; chart = ex.chart || null;
+      facts = EXTRA[L.content].facts[rec.index];
+    } else if(rec.kind === "info"){
+      eyebrow = rec.data.eyebrow; title = rec.data.title; body = rec.data.html;
+    } else if(rec.kind === "node"){
+      const i = rec.index, room = ROOMS[i];
+      icon = ICONS[room.exhibits[0].icon];
+      eyebrow = "FINAL ROOM · " + room.tag.toUpperCase();
+      title = room.title;
+      body = '<p class="yrs">' + room.years + '</p><p>Exhibits in this room:</p><ul class="caps">' + room.exhibits.map(e => '<li>' + e.caption + '</li>').join("") + '</ul>';
+      why = "<strong>What it led to:</strong> " + EXTRA_LINKS[i];
+      facts = EXTRA[i].timeline.slice(0, 3).map(([y, t]) => y + ": " + t);
+      action = {label:"Walk to " + room.tag, fn:() => leaveInspectAndJump(i + 1)};
+    } else if(rec.kind === "link"){
+      const i = rec.index, from = ROOMS[i], to = i < 4 ? ROOMS[i + 1] : null;
+      eyebrow = "FINAL ROOM · CAUSE AND EFFECT";
+      title = from.tag + " → " + (to ? to.tag : "Today");
+      body = "<p>" + EXTRA_LINKS[i] + "</p>";
+      why = "<strong>In one line:</strong> " + ROUTE_WHY[i].replace(/^→\s*/, "");
+      quote = to ? to.entrySign : FINAL_ROOM.entrySign.replace(/^.*?<br>/, "");
+    } else if(rec.kind === "curator"){
+      icon = ICONS.compass;
+      eyebrow = FINAL_ROOM.tag.toUpperCase() + " · " + FINAL_ROOM.years.toUpperCase();
+      title = FINAL_ROOM.title;
+      body = "<p>" + FINAL_ROOM.curator + "</p><div class=\"tl-list\">" + ROOMS.map((r, i) => '<div class="tl-year">' + r.years.split(" ")[0] + '</div><div>' + r.title + ' — ' + ROUTE_WHY[i].replace(/^→\s*/, "") + '</div>').join("") + "</div>";
+      action = {label:FINAL_ROOM.restart, fn:() => leaveInspectAndJump(1)};
+    }
+    $("panelIcon").innerHTML = icon;
+    $("modalEyebrow").textContent = eyebrow;
+    $("modalTitle").textContent = title;
+    $("modalBody").innerHTML = body;
+    const w = $("modalWhy"); w.innerHTML = why; w.style.display = why ? "" : "none";
+    const f = $("modalFacts");
+    if(facts){ f.innerHTML = factsHtml(facts) + '<div class="added">Added for the 3D edition</div>'; f.hidden = false; } else f.hidden = true;
+    const a = $("panelAction");
+    if(action){ a.textContent = action.label; a.onclick = action.fn; a.hidden = false; } else { a.hidden = true; a.onclick = null; }
     const q = $("modalQuote");
-    if(ex.quote){ q.style.display = "block"; q.textContent = ex.quote; } else q.style.display = "none";
+    if(quote){ q.style.display = "block"; q.textContent = quote; } else q.style.display = "none";
     const wrap = $("modalChartWrap"), host = $("modalChartHost");
     host.innerHTML = "";
-    if(ex.chart){
-      $("modalChartTitle").textContent = ex.chart.title;
-      host.appendChild(buildChartSvg(ex.chart));
+    if(chart){
+      $("modalChartTitle").textContent = chart.title;
+      host.appendChild(buildChartSvg(chart));
       wrap.style.display = "block"; wrap.classList.remove("is-visible");
-      requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.add("is-visible")));
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        wrap.classList.add("is-visible");
+        setTimeout(() => wrap.querySelectorAll(".line-path").forEach(p => { p.style.strokeDashoffset = 0; }), 60);
+      }));
     } else wrap.style.display = "none";
     $("panelScroll").scrollTop = 0;
-    $("orbitHint").textContent = TOUCH ? "Drag to rotate · pinch to zoom" : "Drag to rotate · scroll to zoom · ←/→ switch";
+    const nav = navList(rec).length > 1;
+    $("panelPrev").style.visibility = $("panelNext").style.visibility = nav ? "visible" : "hidden";
+    $("orbitHint").textContent = TOUCH ? "Drag to rotate · pinch to zoom" : "Drag to rotate · scroll to zoom" + (nav ? " · ←/→ switch" : "");
     panel.classList.add("open"); panel.setAttribute("aria-hidden", "false");
+  }
+  function leaveInspectAndJump(i){
+    inspectTarget = null;
+    $("panel").classList.remove("open"); $("panel").setAttribute("aria-hidden", "true");
+    viewOffset.target = 0; document.body.classList.remove("inspecting");
+    finishTweenNow();
+    pos.copy(walkPose.pos); yaw = walkPose.yaw; pitch = walkPose.pitch;
+    mode = "walk";
+    jumpToRoom(i);
   }
   $("panelClose").addEventListener("click", closeInspect);
   $("panelPrev").addEventListener("click", () => stepInspect(-1));
@@ -2071,7 +3400,8 @@ async function createMuseum(THREE){
     highlighted = rec;
     const p = $("prompt");
     if(rec){
-      p.innerHTML = (TOUCH ? "Tap to inspect · " : (locked ? "Click / E · " : "E · ")) + "<b>" + (rec.kind === "chart" ? "Data: " + rec.data.chart.title.replace("Fig. — ", "") : rec.data.caption) + "</b>";
+      const verb = rec.kind === "action" ? "" : (TOUCH ? "Tap to inspect · " : (locked ? "Click / E · " : "E · "));
+      p.innerHTML = (rec.kind === "action" ? (TOUCH ? "Tap · " : "Click / E · ") : verb) + "<b>" + (rec.label || rec.data.caption) + "</b>";
       p.classList.remove("off");
     } else p.classList.add("off");
     $("crosshair").classList.toggle("hot", !!rec);
@@ -2083,8 +3413,7 @@ async function createMuseum(THREE){
     for(const e of exhibits){
       if(e.room !== currentRoom) continue;
       const dx = e.focus.x - pos.x, dz = e.focus.z - pos.z; const d = Math.hypot(dx, dz);
-      const reach = e.kind === "chart" ? 5.5 : 4.2;
-      if(d > reach) continue;
+      if(d > (e.reach || 4.2)) continue;
       const cos = (dx*fwd.x + dz*fwd.z)/(d || 1);
       if(cos < .8) continue;
       const score = d*(2 - cos);
@@ -2123,21 +3452,50 @@ async function createMuseum(THREE){
           showSub("Guided Tour · Entrance Hall", "My Modern China — 140 Years in One Story", "Walk through five rooms, each one a different economic era of modern China — 1839 to today. Every exhibit you open explains not just what happened, but why it made the next room possible.");
           await tourWait(7000); check();
         } else if(L.content < 5){
-          const room = ROOMS[L.content];
+          const room = ROOMS[L.content], ex = EXTRA[L.content];
           await flyTo(new Vector3(0, 2.4, L.zMax - 2.2), new Vector3(0, 1.4, L.cz - 4), 2.2); check();
           showSub("Guided Tour · " + room.tag + " · " + room.years, room.title, room.entrySign ? room.entrySign : "Four exhibits and one data installation tell how the era began and why it led to the next room.");
-          await tourWait(5500); check();
-          for(const e of exhibits.filter(x => x.room === i).sort((a, b) => b.focus.z - a.focus.z)){
+          await tourWait(6000); check();
+          const stops = exhibits.filter(x => x.room === i && (x.kind === "exhibit" || x.kind === "chart" || x.sub === "timeline")).sort((a, b) => b.focus.z - a.focus.z || a.navIndex - b.navIndex);
+          for(const e of stops){
             const target = e.focus;
-            const view = new Vector3().copy(target).addScaledVector(e.front, e.kind === "chart" ? 4.6 : 2.7); view.y = e.kind === "chart" ? 2.0 : EYE + .1;
+            const back = e.kind === "chart" ? 4.6 : e.kind === "info" ? 4.4 : 2.7;
+            const view = new Vector3().copy(target).addScaledVector(e.front, back); view.y = e.kind === "chart" ? 2.0 : e.kind === "info" ? EYE + .3 : EYE + .1;
             hideSub();
             await flyTo(new Vector3((camera.position.x + view.x)/2, EYE + .2, (camera.position.z + view.z)/2), new Vector3(target.x, target.y, target.z), 1.4); check();
             await flyTo(view, target, 1.5); check();
             if(e.kind === "chart"){ charts.filter(c => c.room === i).forEach(c => { c.reset(); c.start(elapsed); }); }
-            showSub(room.tag + " · Exhibit " + (e.index+1) + " of " + room.exhibits.length + (e.kind === "chart" ? " · Data installation" : ""), e.kind === "chart" ? e.data.chart.title : e.data.title, "<strong>Why this matters:</strong> " + e.data.why);
-            await tourWait(e.kind === "chart" ? 7000 : 8000); check();
+            if(e.kind === "info"){
+              showSub(room.tag + " · Timeline", "Key dates, " + room.years, ex.timeline.map(([y, t]) => "<b>" + y + "</b>" + t).join("<br>"));
+              await tourWait(12000); check();
+            } else {
+              const fact = e.kind === "exhibit" ? "<br><br><strong>Did you know?</strong> " + ex.facts[e.index][0] : "";
+              showSub(room.tag + " · Exhibit " + (e.index+1) + " of " + room.exhibits.length + (e.kind === "chart" ? " · Data installation" : ""), e.kind === "chart" ? e.data.chart.title : e.data.title, "<strong>Why this matters:</strong> " + e.data.why + fact);
+              await tourWait(e.kind === "chart" ? 7000 : 10000); check();
+            }
           }
           hideSub();
+        } else {
+          await flyTo(new Vector3(0, 2.6, L.zMax - 2.6), new Vector3(0, 1.6, L.cz - 4), 2.2); check();
+          showSub("Guided Tour · " + FINAL_ROOM.tag, FINAL_ROOM.title, FINAL_ROOM.entrySign.replace(/^.*?<br>/, ""));
+          await tourWait(6500); check();
+          const chain = exhibits.filter(x => x.navGroup === "chain").sort((a, b) => a.navIndex - b.navIndex);
+          for(const e of chain){
+            const view = new Vector3().copy(e.focus).addScaledVector(e.front, e.kind === "node" ? 3.6 : 3.0); view.y = 2.1;
+            hideSub();
+            await flyTo(view, e.focus, 1.8); check();
+            const r = ROOMS[e.index];
+            if(e.kind === "node") showSub("Final Room · " + r.tag + " · " + r.years, r.title, "<strong>What it led to:</strong> " + ROUTE_WHY[e.index].replace(/^→\s*/, ""));
+            else showSub("Final Room · Cause and effect", r.tag + " → " + (e.index < 4 ? ROOMS[e.index + 1].tag : "Today"), EXTRA_LINKS[e.index]);
+            await tourWait(e.kind === "node" ? 5500 : 8000); check();
+          }
+          const cur = exhibits.find(x => x.kind === "curator");
+          hideSub();
+          await flyTo(new Vector3(cur.focus.x, 2.3, cur.focus.z + 2.2), cur.focus, 2.0); check();
+          showSub("Final Room · Curator's note", FINAL_ROOM.title, FINAL_ROOM.curator);
+          await tourWait(10000); check();
+          showSub("Guided Tour", "End of the tour", "Thank you for visiting. Explore freely, open any exhibit again, or use the plaque “" + FINAL_ROOM.restart + "” to start over in Room I.");
+          await tourWait(7000); check();
         }
         const nxt = i + 1;
         if(nxt >= LAYOUT.length) break;
@@ -2288,7 +3646,11 @@ async function createMuseum(THREE){
   }
   function updateInspect(dt){
     orbit.idle += dt;
-    if(orbit.idle > 2.5) orbit.theta += dt*.18;
+    if(orbit.limit){
+      let d = orbit.theta - orbit.base; d = Math.atan2(Math.sin(d), Math.cos(d));
+      if(orbit.idle > 2.5) d = d*(1 - Math.min(1, dt*1.5));
+      orbit.theta = orbit.base + Math.max(-orbit.limit, Math.min(orbit.limit, d));
+    } else if(orbit.idle > 2.5) orbit.theta += dt*.18;
     const p = orbitPose();
     camera.position.lerp(p, 1 - Math.exp(-12*dt));
     camera.quaternion.slerp(quatLookingAt(camera.position, orbit.target), 1 - Math.exp(-14*dt));
@@ -2352,6 +3714,7 @@ async function createMuseum(THREE){
     if(mode === "walk") setHighlight(findHighlight());
     updateViewOffset(dt);
     updateAtmosphere(dt, elapsed);
+    updateRoomVisibility();
     for(const u of updaters) u(elapsed, dt);
     audio.tick();
     renderer.render(scene, camera);
@@ -2389,7 +3752,7 @@ async function createMuseum(THREE){
 
   /* exposed for testing and debugging */
   window.MUSEUM = {
-    get state(){ return {mode, currentRoom, pos:pos.toArray(), yaw, pitch, highlighted:highlighted && highlighted.data.title, inspect:inspectTarget && inspectTarget.data.title}; },
+    get state(){ return {mode, currentRoom, pos:pos.toArray(), yaw, pitch, highlighted:highlighted && (highlighted.label || highlighted.data.title), inspect:inspectTarget && (inspectTarget.data.title || inspectTarget.label)}; },
     teleport(i, zr=2.6){ const L = LAYOUT[i]; pos.set(0, EYE, L.zMax - zr); yaw = 0; pitch = 0; setActiveRoom(i); applyWalkCamera(); },
     look(y, p){ yaw = y; pitch = p || 0; },
     setPos(x, z){ pos.x = x; pos.z = z; const ri = roomIndexAt(z); if(ri >= 0 && ri !== currentRoom) setActiveRoom(ri); },
